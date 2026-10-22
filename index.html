@@ -235,6 +235,15 @@ button,label{-webkit-tap-highlight-color:transparent}
       <fieldset class="grp" data-g="sem">
         <legend><button type="button" class="lg" aria-expanded="true">语义搜索</button></legend><div class="gb">
         <p class="hint" id="semst" style="margin:0 0 8px">连线后显示状态。</p>
+        <label class="lbl" for="emb-u">服务商地址</label>
+        <input class="field" id="emb-u" type="url" inputmode="url" placeholder="https://api.xxx.com/v1" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">
+        <label class="lbl" for="emb-k">Key</label>
+        <input class="field" id="emb-k" type="password" placeholder="API Key（没有可留空）" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">
+        <label class="lbl" for="emb-m">模型名</label>
+        <input class="field" id="emb-m" type="text" placeholder="手填，或先点「拉取模型列表」再选" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">
+        <select class="field" id="emb-pick" aria-label="从拉取到的列表里选模型" style="margin-top:8px;width:100%" hidden></select>
+        <div class="btns"><button class="btn" id="emb-fetch">拉取模型列表</button><button class="btn primary" id="emb-save">保存</button><button class="btn" id="emb-reset">恢复默认</button></div>
+        <p class="hint" id="emb-msg">自己的向量接口（可选）：OpenAI 格式的 /embeddings。不填就用 Workers AI 或环境变量。换了接口或模型后，要点一次下面的「重建语义索引」。</p>
         <div class="btns"><button class="btn" id="reidx">重建语义索引</button></div>
         <p class="hint" id="semmsg">新记忆会自动建索引；导入的、以前存的记忆，点一下按钮补建。</p>
       </div></fieldset>
@@ -242,7 +251,15 @@ button,label{-webkit-tap-highlight-color:transparent}
       <fieldset class="grp" data-g="llm">
         <legend><button type="button" class="lg" aria-expanded="true">语言模型</button></legend><div class="gb">
         <p class="hint" id="llmst" style="margin:0 0 8px">连线后显示状态。</p>
-        <p class="hint" style="margin:0">用来自动提炼对话、改写搜索词、写关系摘要。Worker 环境变量：LLM_URL（填到 /v1 即可）、LLM_MODEL、LLM_KEY（可选），需要 OpenAI 格式的 /chat/completions。换服务商只改这三个。设 REWRITE=0 可以单独关掉搜索词改写。</p>
+        <label class="lbl" for="llm-u">服务商地址</label>
+        <input class="field" id="llm-u" type="url" inputmode="url" placeholder="https://api.xxx.com/v1" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">
+        <label class="lbl" for="llm-k">Key</label>
+        <input class="field" id="llm-k" type="password" placeholder="API Key（没有可留空）" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">
+        <label class="lbl" for="llm-m">模型名</label>
+        <input class="field" id="llm-m" type="text" placeholder="手填，或先点「拉取模型列表」再选" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">
+        <select class="field" id="llm-pick" aria-label="从拉取到的列表里选模型" style="margin-top:8px;width:100%" hidden></select>
+        <div class="btns"><button class="btn" id="llm-fetch">拉取模型列表</button><button class="btn primary" id="llm-save">保存</button><button class="btn" id="llm-reset">恢复默认</button></div>
+        <p class="hint" id="llm-msg">用来自动提炼对话、改写搜索词、写关系摘要。地址填到 /v1 即可，需要 OpenAI 格式的 /chat/completions。这里保存的优先于 Worker 环境变量；点「恢复默认」就改回用环境变量。设 REWRITE=0 可以单独关掉搜索词改写。</p>
       </div></fieldset>
 
       <fieldset class="grp" data-g="ing">
@@ -331,7 +348,7 @@ button,label{-webkit-tap-highlight-color:transparent}
 
 <script>
 'use strict';
-const APP_VERSION='v2.3';
+const APP_VERSION='v2.4';
 let CAP=1500;const MAXLEN=2000,PAGE=80;
 const $=id=>document.getElementById(id);
 const ls={
@@ -423,7 +440,7 @@ async function syncOnce(manual){
   try{
     const j=await api('/api/list',{});
     items=(j.items||[]).map(normItem);
-    setSem(!!j.ai,j.src);setLlm(!!j.llm,!!j.rw);setPend(j.pend);setCfg(j.cfg);if(Number(j.cap)>0)CAP=Number(j.cap);
+    const pv=j.prov||{};setSem(!!j.ai,j.src,pv.emb&&pv.emb.from);setLlm(!!j.llm,!!j.rw,pv.llm&&pv.llm.from);setProv(j.prov);setPend(j.pend);setCfg(j.cfg);if(Number(j.cap)>0)CAP=Number(j.cap);
     loaded=true;lastSync=Date.now();cacheSave();
     syncMsg='已同步 '+pad(new Date().getHours())+':'+pad(new Date().getMinutes());
     if(manual)toast('已刷新');
@@ -434,9 +451,10 @@ async function syncOnce(manual){
     return false;
   }finally{render();}
 }
-function setSem(on,src){
+const FROM={web:'网页里填的',env:'Worker 环境变量'};
+function setSem(on,src,from){
   const e=$('semst');if(!e)return;
-  e.textContent=on?(src==='ext'?'已接入你自己的向量接口，语义搜索已启用（关键词 + 语义混合排序）。换过接口或模型后，要点一次「重建语义索引」。':'Worker 已绑定 Workers AI，语义搜索已启用（关键词 + 语义混合排序）。'):'还没配向量：绑定 Workers AI（变量名 AI），或设环境变量 EMB_URL / EMB_MODEL，目前只有关键词搜索。';
+  e.textContent=on?(src==='ext'?'已接入你自己的向量接口（'+(FROM[from]||'')+'），语义搜索已启用（关键词 + 语义混合排序）。换过接口或模型后，要点一次「重建语义索引」。':'Worker 已绑定 Workers AI，语义搜索已启用（关键词 + 语义混合排序）。'):'还没配向量：在下面填向量接口，或绑定 Workers AI（变量名 AI），目前只有关键词搜索。';
 }
 async function reindex(){
   const out=$('semmsg'),b=$('reidx');b.disabled=true;out.textContent='建索引中…（可能要几十秒，别关页面）';
@@ -523,9 +541,55 @@ async function maintNow(){
   catch(e){msg.textContent=e.message;toast(e.message,true);}
   finally{b.disabled=false;}
 }
-function setLlm(on,rw){
+function setLlm(on,rw,from){
   const e=$('llmst');if(!e)return;
-  e.textContent=on?'已接入语言模型：自动提炼、关系摘要可用，'+(rw?'搜索词改写已开启。':'搜索词改写已关闭（REWRITE=0）。'):'还没配语言模型（环境变量 LLM_URL / LLM_MODEL / LLM_KEY），自动提炼、搜索词改写、关系摘要都用不了。';
+  e.textContent=on?'已接入语言模型（'+(FROM[from]||'')+'）：自动提炼、关系摘要可用，'+(rw?'搜索词改写已开启。':'搜索词改写已关闭（REWRITE=0）。'):'还没配语言模型：在下面填服务商地址、Key 和模型名，或设环境变量 LLM_URL / LLM_MODEL / LLM_KEY。自动提炼、搜索词改写、关系摘要都用不了。';
+}
+/* 服务商设置（语言模型 / 向量接口共用）：地址 + Key + 模型名，可拉取模型列表再选 */
+const provSeen={llm:'',emb:''};   // 上一次填进输入框的服务端状态；没变就不动输入框，免得同步时把你正在打的字冲掉
+function setProv(p){
+  if(!p)return;
+  ['llm','emb'].forEach(k=>{
+    const v=p[k];if(!v||!$(k+'-u'))return;
+    const sig=JSON.stringify(v);if(provSeen[k]===sig)return;
+    provSeen[k]=sig;
+    $(k+'-u').value=v.u;$(k+'-m').value=v.m;$(k+'-k').value='';
+    $(k+'-k').placeholder=v.k?'已设置，留空＝不改':'API Key（没有可留空）';
+  });
+}
+async function provFetch(kind){
+  const b=$(kind+'-fetch'),msg=$(kind+'-msg'),sel=$(kind+'-pick'),u=$(kind+'-u').value.trim();
+  if(!u){msg.textContent='先填服务商地址。';return;}
+  b.disabled=true;msg.textContent='拉取中…';
+  try{
+    const j=await api('/api/models',{kind,u,k:$(kind+'-k').value.trim()},30000),ms=j.models||[],cur=$(kind+'-m').value.trim();
+    sel.textContent='';
+    sel.append(h('option',{value:''},'选一个模型（共 '+ms.length+' 个）…'),...ms.map(x=>h('option',{value:x},x)));
+    sel.value=ms.includes(cur)?cur:'';sel.hidden=false;
+    msg.textContent=(j.message||'拉取完成')+'，在上面的下拉里选一个，再点「保存」。';
+  }catch(e){msg.textContent=e.message;toast(e.message,true);}
+  finally{b.disabled=false;}
+}
+async function provSave(kind){
+  const b=$(kind+'-save'),msg=$(kind+'-msg'),u=$(kind+'-u').value.trim(),m=$(kind+'-m').value.trim();
+  if(!u||!m){msg.textContent='地址和模型名都要填。';return;}
+  b.disabled=true;msg.textContent='保存中…';
+  try{
+    const r=await api('/api/prov',{kind,u,k:$(kind+'-k').value.trim(),m});
+    provSeen[kind]='';msg.textContent=r.message||'已保存';toast('已保存');reload();   // 清掉记录，让刷新后按服务端的真实状态重新填一遍（Key 框也会清空）
+  }catch(e){msg.textContent=e.message;toast(e.message,true);}
+  finally{b.disabled=false;}
+}
+function provReset(kind){
+  dialog('恢复默认？',h('p',{class:'txt'},'会清掉网页里保存的'+(kind==='llm'?'语言模型':'向量接口')+'地址、Key 和模型名，改回用 Worker 环境变量（没设就是没配）。'),[
+    {label:'取消',fn:c=>c()},
+    {label:'恢复',danger:true,fn:async c=>{
+      try{
+        const r=await api('/api/prov',{kind,clear:true});
+        c();provSeen[kind]='';$(kind+'-pick').hidden=true;$(kind+'-msg').textContent=r.message||'已恢复';toast('已恢复默认');reload();
+      }catch(e){toast(e.message,true);}
+    }}
+  ]);
 }
 function opText(o){
   const k=String(o.op||'').toLowerCase(),imp=String(o.importance==null?'':o.importance);
@@ -925,6 +989,7 @@ $('impfile').onchange=async e=>{
 $('impgo').onclick=()=>{const t=$('paste').value.trim();if(!t){toast('先粘贴 JSON',true);return;}importText(t);};
 $('wipe').onclick=wipe;$('reidx').onclick=reindex;$('dupgo').onclick=findDups;$('purge').onclick=purge;
 $('pendgo').onclick=loadPend;$('consgo').onclick=consGo;$('maint').onclick=maintNow;['cfgrev','cfgpurge','cfgcons'].forEach(id=>{$(id).onchange=saveCfg;});
+['llm','emb'].forEach(k=>{$(k+'-fetch').onclick=()=>provFetch(k);$(k+'-save').onclick=()=>provSave(k);$(k+'-reset').onclick=()=>provReset(k);$(k+'-pick').onchange=e=>{if(e.target.value)$(k+'-m').value=e.target.value;};});
 $('ingdry').onclick=ingDry;$('inglog').onclick=ingLog;$('sumload').onclick=sumLoad;$('sumgen').onclick=sumGen;$('sumsave').onclick=sumSave;
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&configured()&&Date.now()-lastSync>30000)refresh(false);});
 
