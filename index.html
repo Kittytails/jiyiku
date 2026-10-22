@@ -20,15 +20,16 @@
 html,body{height:100%;margin:0}
 body{background:var(--teal);color:var(--ink);font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%;overscroll-behavior:none}
 button,input,textarea,select{font:inherit;color:inherit;margin:0;-webkit-appearance:none;appearance:none;border-radius:0}
-#app{position:fixed;inset:0;height:100vh;height:100dvh;display:flex;flex-direction:column;max-width:760px;margin:0 auto;background:var(--face)}
+#app{position:fixed;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;max-width:760px;margin:0 auto;background:var(--face)}
 
+@media (max-width:760px){html,body{background:var(--face)}}
 /* 立体边框 */
 .btn,.tbtn,.chip,.win{border:2px solid;border-color:var(--hi) var(--dk) var(--dk) var(--hi);box-shadow:inset -1px -1px var(--lo),inset 1px 1px #dfdfdf}
 .field,.well,.out{border:2px solid;border-color:var(--lo) var(--hi) var(--hi) var(--lo);box-shadow:inset 1px 1px var(--dk),inset -1px -1px #dfdfdf}
 .btn:active,.chip:active,.chip.on,.task .btn.on,.tbtn:active{border-color:var(--dk) var(--hi) var(--hi) var(--dk);box-shadow:inset 1px 1px var(--lo)}
 
 /* 标题栏 */
-.title{display:flex;align-items:center;gap:8px;background:var(--navy);color:#fff;padding:calc(env(safe-area-inset-top) + 8px) 10px 8px;flex:none}
+.title{display:flex;align-items:center;gap:8px;background:var(--navy);color:#fff;padding:max(calc(env(safe-area-inset-top) - 12px),calc(min(env(safe-area-inset-top),20px) + 6px)) 10px 8px;flex:none}
 .title h1,.title h2{margin:0;font-size:17px;line-height:1.2;flex:1;font-weight:700;letter-spacing:.5px}
 .title svg{flex:none}
 .tbtn{width:34px;height:34px;display:grid;place-items:center;background:var(--face);color:#000;font-weight:700;font-size:16px;padding:0;touch-action:manipulation}
