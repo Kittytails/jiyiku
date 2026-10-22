@@ -14,7 +14,7 @@
 <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAADXElEQVR42u3dW3LTMBSAYamTxWQXkVeWZmf2LmA15iFDYUga6tRSdPn+J4bLMJhvzpGSUGJ4fw/Svd48AsEhOASH4BAcgkNwCA7BITgkOASH4FDGDlt/wXo+e2qNFi+XjDjIaLRpmkIIKYQ5JWtFr1gr15Zl8ewcSAWHBIfgEByq8LZyW0qzp1lJ85xMDlkrgkNwaLwDqb7fuj75vmaMFzj674k3rU6nk7UiZw7BoadLWz6wA8dADq7fU8YHHLXL+NvBx7fneYZj6D4E/KOkjAw4GvNRUgYcLfkoLAOOxs6kxe4pcLQk43a/wEHGHxnlfcBR+2nj7pnD6xy6cwK9FQOHQvk7CxyCQ9vzYZ+6yvfJHTjaLtOn/awVwSE4BIfGuK3s9Y93ZXIIDsEhOASHBIeKXWVnT7OS9vqcmMmh/JPj2tl/q1BBe31lepNDcOjla6XLYowPfnRdVziGlrH+ePQTevVhrXxLhjPH0D2WEY89rxU4njxqmBwWChx6SkbfOwUOMwMOMuAocD0ZZ6fA4XoCx94LZYSxAYejBhxkwFFGxiA7BY4QzAw4XE/gyH7UGGenjIvDIRQOMuAoJWOonTLo5DAz4HA9gaPUUWO0nTIQDodQOMiAo/ghdMCdMgQOh1A4Mi6UMcdG5zgcNeAgA44XyRh2p/Q8OcwMOFxPMnboUsZeYyMe99TW3Ho6kGE39b9WKr+exGN7++6NjDIyWlwr/UwOMuBo7HrSrowecNT/Smi7r6G9kZF7bLitkNHVQmkbBxlwuJ7A4XoCR/cLpScZocX3VtZ1DT8jGXCUuCLu+UZdXx8LahLHXn8HMcZ939zvLF/2yUKBgww4yICjigNH3zJMDjLgIAOOFq/TcHR14OjyJQ04LBQ4yICDDDiqOHAMKMPkIAMOMuAgA46iB45hZZgc/x8bIweHhQLHlp1ChslBBhxkwEEGHLkOHGSYHI8iA45Px4bgsFDg+NqBgww4zAw4yICDDDhyHTjIgONRZMDx6UIRHI4acHztwEEGHGbGbh26/xP+BhHJMDlcT+AQHIJDXR9IU0ohhGVZPFOTQ3AIDgkOwaGX3FamafLUTA7BsaV4uXhk7TanlHetbP0NZK0IDsEhwSE4BIfgEByCQ3AIDsEhOASHdK9fLEZ5C1ztPjwAAAAASUVORK5CYII=">
 <title>记忆库</title>
 <style>
-:root{--face:#c0c0c0;--hi:#fff;--lo:#808080;--dk:#404040;--navy:#000080;--teal:#008080;--tip:#ffffe1;--ink:#000;--sub:#4a4a4a;--bad:#800000;--tp:max(calc(env(safe-area-inset-top) - 16px),calc(min(env(safe-area-inset-top),20px) + 6px));--th:calc(var(--tp) + 40px);--tbh:calc(58px + env(safe-area-inset-bottom))}
+:root{--face:#c0c0c0;--hi:#fff;--lo:#808080;--dk:#404040;--navy:#000080;--teal:#008080;--tip:#ffffe1;--ink:#000;--sub:#4a4a4a;--bad:#800000;--tp:calc(max(calc(env(safe-area-inset-top) - 16px),calc(min(env(safe-area-inset-top),20px) + 6px)) + 10px);--th:calc(var(--tp) + 40px);--tbh:calc(58px + env(safe-area-inset-bottom))}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0;touch-action:manipulation}
@@ -29,7 +29,7 @@ button,input,textarea,select{font:inherit;color:inherit;margin:0;-webkit-appeara
 .btn:active,.chip:active,.chip.on,.task .btn.on,.tbtn:active{border-color:var(--dk) var(--hi) var(--hi) var(--dk);box-shadow:inset 1px 1px var(--lo)}
 
 /* 标题栏 */
-.title{display:flex;align-items:center;gap:8px;background:var(--navy);color:#fff;padding:var(--tp) 10px 6px;flex:none}
+.title{display:flex;align-items:center;gap:8px;color:#fff;padding:var(--tp) 10px 6px;flex:none}
 #app>.title{position:sticky;top:0;z-index:10;height:var(--th)}
 .title h1,.title h2{margin:0;font-size:17px;line-height:1.2;flex:1;font-weight:700;letter-spacing:.5px}
 .title svg{flex:none}
@@ -60,22 +60,22 @@ textarea.field{resize:none;display:block}
 /* 列表 */
 .view{display:block}
 .well{margin:0 8px;background:#fff;min-height:96px}
-.mem{padding:10px 12px;border-bottom:1px dotted var(--lo)}
-.mem.pinned{background:var(--tip);border-left:5px solid var(--navy)}
+.mem{border-bottom:1px dotted var(--lo)}
+.mem.pinned{border-left:5px solid var(--navy)}
 .txt{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55}
-.meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px;color:var(--sub);font-size:13px}
+.meta{display:flex;flex-wrap:wrap;align-items:center;margin-top:6px;color:var(--sub);font-size:13px}
 .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .empty{padding:36px 20px;text-align:center}
 .empty b{display:block;font-size:17px;margin-bottom:4px}
 .empty p{margin:0 0 14px;color:var(--sub)}
 .more{padding:12px;text-align:center}
-.stat{position:sticky;bottom:var(--tbh);z-index:5;background:var(--face);margin:6px 8px 8px;padding:3px 8px;font-size:13px;color:var(--sub);border:1px solid;border-color:var(--lo) var(--hi) var(--hi) var(--lo);min-height:26px}
+.stat{position:sticky;bottom:var(--tbh);z-index:5;background:var(--face);margin:6px 8px 8px;font-size:13px;color:var(--sub)}
 .stat.err{color:var(--bad)}
 
 /* 设置 / 试搜 */
 .page{padding:10px 10px 16px}
 .grp{margin:0 0 16px;padding:12px;border:2px groove #fff;min-width:0}
-.grp legend{padding:0 6px;font-weight:700}
+.grp legend{font-weight:700}
 .lbl{display:block;margin:10px 0 4px;font-weight:700;font-size:15px}
 .lbl:first-of-type{margin-top:0}
 .hint{margin:8px 0 0;color:var(--sub);font-size:13px;line-height:1.5}
@@ -154,7 +154,6 @@ button,label{-webkit-tap-highlight-color:transparent}
 .lg{display:flex;align-items:center;gap:6px;min-height:32px;padding:2px 8px;background:var(--face);border:0;font-weight:700;font-size:15px;touch-action:manipulation;cursor:pointer}
 .lg::before{content:"▾";font-size:12px}
 .lg[aria-expanded=false]::before{content:"▸"}
-.grp.shut{padding-top:0;padding-bottom:2px;margin-bottom:10px}
 .grp.shut>.gb{display:none}
 
 /* 提示条 */
@@ -230,7 +229,7 @@ button,label{-webkit-tap-highlight-color:transparent}
         <input class="field" id="k" type="password" placeholder="Worker 里设的 TOKEN" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">
         <label class="row" for="showk"><input type="checkbox" id="showk">显示 Token</label>
         <div class="btns"><button class="btn primary" id="conn">保存并连线</button></div>
-        <p class="hint" id="connmsg">地址和 Token 只保存在这台设备的浏览器里。（界面 v2.3.6）</p>
+        <p class="hint" id="connmsg">地址和 Token 只保存在这台设备的浏览器里。</p>
       </div></fieldset>
 
       <fieldset class="grp" data-g="sem">
