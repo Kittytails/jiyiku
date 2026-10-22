@@ -228,7 +228,7 @@ button,label{-webkit-tap-highlight-color:transparent}
         <input class="field" id="k" type="password" placeholder="Worker 里设的 TOKEN" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">
         <label class="row" for="showk"><input type="checkbox" id="showk">显示 Token</label>
         <div class="btns"><button class="btn primary" id="conn">保存并连线</button></div>
-        <p class="hint" id="connmsg">地址和 Token 只保存在这台设备的浏览器里。</p>
+        <p class="hint" id="connmsg">地址和 Token 只保存在这台设备的浏览器里。（界面 v2.3.4）</p>
       </div></fieldset>
 
       <fieldset class="grp" data-g="sem">
@@ -934,25 +934,6 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&configure
   tab=configured()?'mem':'set';
   render();
   refresh(false);
-})();
-</script>
-<script>
-/* 主屏幕模式：iOS 有时会把可视高度算少一截（底栏悬空），这里按屏幕真实高度补回来 */
-(function(){
-  var app=document.getElementById('app');
-  var sa=navigator.standalone===true||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
-  if(!app||!sa)return;
-  function fit(){
-    var sw=screen.width,sh=screen.height,land=innerWidth>innerHeight;
-    var full=land?Math.min(sw,sh):Math.max(sw,sh),d=full-innerHeight;
-    app.style.height=(d>0&&d<=80)?full+'px':'';
-    if(window.scrollY)scrollTo(0,0);
-  }
-  function later(){setTimeout(fit,120);setTimeout(fit,500);}
-  fit();
-  addEventListener('resize',fit);addEventListener('orientationchange',later);
-  addEventListener('pageshow',later);addEventListener('focusout',later);
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)later();});
 })();
 </script>
 </body>
