@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#000080">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,7 +17,7 @@
 :root{--face:#c0c0c0;--hi:#fff;--lo:#808080;--dk:#404040;--navy:#000080;--teal:#008080;--tip:#ffffe1;--ink:#000;--sub:#4a4a4a;--bad:#800000}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html,body{height:100%;margin:0}
+html,body{height:100%;margin:0;touch-action:manipulation}
 body{background:var(--teal);color:var(--ink);font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%;overscroll-behavior:none}
 button,input,textarea,select{font:inherit;color:inherit;margin:0;-webkit-appearance:none;appearance:none;border-radius:0}
 #app{position:fixed;top:0;right:0;bottom:0;left:0;display:flex;flex-direction:column;max-width:760px;margin:0 auto;background:var(--face)}
@@ -228,7 +228,7 @@ button,label{-webkit-tap-highlight-color:transparent}
         <input class="field" id="k" type="password" placeholder="Worker 里设的 TOKEN" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">
         <label class="row" for="showk"><input type="checkbox" id="showk">显示 Token</label>
         <div class="btns"><button class="btn primary" id="conn">保存并连线</button></div>
-        <p class="hint" id="connmsg">地址和 Token 只保存在这台设备的浏览器里。（界面 v2.3.4）</p>
+        <p class="hint" id="connmsg">地址和 Token 只保存在这台设备的浏览器里。（界面 v2.3.5）</p>
       </div></fieldset>
 
       <fieldset class="grp" data-g="sem">
@@ -934,6 +934,25 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&configure
   tab=configured()?'mem':'set';
   render();
   refresh(false);
+})();
+</script>
+<script>
+/* 照"直链"的做法：键盘弹出/收起、切后台回来、转屏之后，把 iOS 顺手推歪的页面位置摆正（只回滚位置，不动任何高度） */
+(function(){
+  var vv=window.visualViewport,timers=[];
+  function typing(){var a=document.activeElement;return !!a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName);}
+  function fix(){if(window.scrollX||window.scrollY||(vv&&vv.offsetTop>0))window.scrollTo(0,0);}
+  function settle(){   /* iOS 键盘动画比失焦结束得晚，所以多次校正 */
+    timers.forEach(clearTimeout);timers=[];
+    [0,80,250,500,900].forEach(function(ms){timers.push(setTimeout(function(){if(!typing())fix();},ms));});
+  }
+  document.addEventListener('focusout',settle,true);
+  addEventListener('pageshow',settle);addEventListener('orientationchange',settle);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)settle();});
+  if(vv){
+    vv.addEventListener('resize',function(){if(!typing())settle();});
+    vv.addEventListener('scroll',function(){if(typing())fix();});
+  }
 })();
 </script>
 </body>
