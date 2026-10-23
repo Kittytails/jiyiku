@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#000080">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -105,7 +105,7 @@ select.field{width:auto;padding-right:28px;background:#fff url("data:image/svg+x
 .win .foot{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;padding:0 12px 12px}
 .win .foot .btn{min-width:84px}
 .cnt{display:block;text-align:right;font-size:12px;color:var(--sub);margin:2px 0 8px}
-.toast{position:fixed;left:12px;right:12px;bottom:calc(74px + env(safe-area-inset-bottom));max-width:430px;margin:0 auto;padding:10px 14px;background:var(--tip);color:#000;border:2px solid #000;z-index:30;font-weight:700;font-size:15px;box-shadow:3px 3px 0 rgba(0,0,0,.35)}
+.toast{position:fixed;left:12px;right:12px;bottom:calc(74px + env(safe-area-inset-bottom) + var(--ubh,0px));max-width:430px;margin:0 auto;padding:10px 14px;background:var(--tip);color:#000;border:2px solid #000;z-index:30;font-weight:700;font-size:15px;box-shadow:3px 3px 0 rgba(0,0,0,.35)}
 .toast.err{background:#fff;color:var(--bad);border-color:var(--bad)}
 @media (prefers-reduced-motion:no-preference){.toast{animation:pop .12s ease-out}@keyframes pop{from{transform:translateY(6px);opacity:0}}}
 
@@ -426,6 +426,10 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
         <div class="btns"><button class="btn" id="consgo">找出可以合并的</button></div>
         <p class="hint" id="consmsg">同一主题的几条零碎记忆，合成一条更完整的；原来的标为过时（不删，可恢复）。先给你看建议，勾选后才保存。</p>
         <div id="consout"></div>
+        <label class="lbl" style="margin-top:14px">重新整理旧记忆的时间和有效期（语言模型）</label>
+        <div class="btns"><button class="btn" id="redogo">开始检查</button></div>
+        <p class="hint" id="redomsg">旧记忆里漏了的事件日期 / 钟点、没设的有效期（比如当时随口说的临时活动），按新规则补上。每次看 30 条，先给你看建议，勾选后才保存；不改内容，也不动更新时间。原对话没存下来，所以「来源」补不了。</p>
+        <div id="redoout"></div>
       </div></fieldset>
 
       <fieldset class="grp" data-g="bak">
@@ -473,7 +477,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 
 <script>
 'use strict';
-const APP_VERSION='v5.1';
+const APP_VERSION='v5.5';
 let CAP=1500;const MAXLEN=2000,PAGE=80;
 const $=id=>document.getElementById(id);
 const ls={
@@ -495,7 +499,7 @@ function h(tag,attrs,...kids){
 }
 
 const cfg={url:ls.get('url')||'',tok:ls.get('tok')||''};
-const opened=new Set(),srcOpen=new Set();
+const opened=new Set(),srcOpen=new Set(),closedLong=new Set();   // closedLong：用户手动收起过的长记忆，搜索命中自动展开不再覆盖
 let selMode=false;const sel=new Set();
 let items=[],tab='mem',tagSel='',impSel=-1,catSel='',flagSel='',inflight=null,shown=PAGE,memScroll=0,loaded=false,syncMsg='',syncErr=false,lastSync=0,toastTimer=0;
 const configured=()=>!!(cfg.url&&cfg.tok);
@@ -531,10 +535,11 @@ async function mcpCall(name,args){
 /* ---------- 数据 ---------- */
 const pad=n=>String(n).padStart(2,'0');
 const bjDay=off=>new Date(Date.now()+8*36e5+off*864e5).toISOString().slice(0,10);   // 北京时间的某一天（0＝今天）
-const dateOf=ts=>bj(ts).slice(0,10);   // 一律按北京时间，和 Worker 一致（不随设备时区变）
+const dateOf=ts=>bj(ts).slice(0,10);
+const expLabel=ts=>bj(ts);   // 一律显示精确到秒的日期时间，按北京时间，和 Worker 一致（不随设备时区变）
 function normItem(m){
   const upd=Number(m.upd)||Number(m.ts)||0;
-  return {id:String(m.id),content:String(m.content||''),tags:Array.isArray(m.tags)?m.tags.map(String):[],ts:Number(m.ts)||upd,upd,pin:!!m.pin,actor:String(m.actor||''),imp:m.imp!=null&&m.imp!==''&&[0,1,2].includes(Number(m.imp))?Number(m.imp):1,cat:String(m.cat||''),exp:Number(m.exp)||0,evt:/^\d{4}-\d{2}-\d{2}$/.test(m.evt||'')?m.evt:'',evh:/^\d{4}-\d{2}-\d{2}$/.test(m.evt||'')&&/^\d{2}:\d{2}(:\d{2})?$/.test(m.evh||'')?m.evh:'',stale:!!m.stale,src:m.src==='auto'?'auto':'',fr:String(m.fr||'').slice(0,160),hit:Math.max(0,Number(m.hit)||0),lh:Number(m.lh)||0};
+  return {id:String(m.id),content:String(m.content||''),tags:Array.isArray(m.tags)?m.tags.map(String):[],ts:Number(m.ts)||upd,upd,pin:!!m.pin,actor:String(m.actor||''),imp:m.imp!=null&&m.imp!==''&&[0,1,2].includes(Number(m.imp))?Number(m.imp):1,cat:String(m.cat||''),exp:Number(m.exp)||0,evt:/^\d{4}-\d{2}-\d{2}$/.test(m.evt||'')?m.evt:'',evh:/^\d{4}-\d{2}-\d{2}$/.test(m.evt||'')&&/^\d{2}:\d{2}(:\d{2})?$/.test(m.evh||'')?m.evh:'',stale:!!m.stale,src:m.src==='auto'?'auto':'',fr:String(m.fr||'').slice(0,300),sat:Number(m.sat)||0,hit:Math.max(0,Number(m.hit)||0),lh:Number(m.lh)||0};
 }
 const cacheSave=()=>ls.set('cache',JSON.stringify(items));
 const isOld=m=>m.stale||(m.exp>0&&m.exp<Date.now());
@@ -695,9 +700,14 @@ async function remCall(path,btn){
   catch(e){toast(e.message,true);}
   finally{btn.disabled=false;}
 }
-async function saveCfg(){
-  const want=Number($('cfgcap').value)||0;
-  try{setCfg(await api('/api/cfg',{review:$('cfgrev').checked,purge:Number($('cfgpurge').value)||0,cons:$('cfgcons').checked,cap:want,evict:$('cfgevict').checked,recall:Number($('cfgrecall').value)||0}),true);await reload();toast(want>0&&want<100?'条数上限最低 100，已按 100 保存':'已保存');}
+const CFGKEY={cfgrev:'review',cfgpurge:'purge',cfgcons:'cons',cfgcap:'cap',cfgevict:'evict',cfgrecall:'recall'};
+async function saveCfg(id){
+  // 只发被改的那一项：控件在首次同步回来前还是 HTML 默认值，全发会把别的设置写回默认
+  const el=$(id),k=CFGKEY[id];if(!el||!k)return;
+  if(!loaded){toast('还没同步到设置，请稍后再改',true);reload();return;}
+  const want=id==='cfgcap'?(Number(el.value)||0):0,body={};
+  body[k]=el.type==='checkbox'?el.checked:(Number(el.value)||0);
+  try{setCfg(await api('/api/cfg',body),true);await reload();toast(id==='cfgcap'&&want>0&&want<100?'条数上限最低 100，已按 100 保存':'已保存');}
   catch(e){toast(e.message,true);reload();}
 }
 async function maintNow(){
@@ -804,9 +814,10 @@ function presDel(x){
 }
 function opText(o){
   const k=String(o.op||'').toLowerCase(),imp=String(o.importance==null?'':o.importance);
-  if(k==='add')return '＋ '+(o.subject?'〔'+o.subject+'的事〕':'')+(o.category?'【'+o.category+'】':'')+(evStr(o)?evStr(o)+' ':'')+o.content+(imp==='2'||imp==='重要'?' ⭐':imp==='0'||imp==='小事'?'（小事）':'')+(o.scope==='角色'||o.subject==='角色'||o.subject==='双方'?'（只属于这个角色）':'')+(Number(o.expire_days)>0?'（'+o.expire_days+' 天后过期）':'');
+  if(k==='add')return '＋ '+(o.subject?'〔'+o.subject+'的事〕':'')+(o.category?'【'+o.category+'】':'')+(evStr(o)?evStr(o)+' ':'')+o.content+(imp==='2'||imp==='重要'?' ⭐':imp==='0'||imp==='小事'?'（小事）':'')+(o.scope==='角色'||o.subject==='角色'||o.subject==='双方'?'（只属于这个角色）':'')+(Number(o.expire_hours)>0?'（'+(Number(o.expire_hours)<1?Math.round(Number(o.expire_hours)*60)+' 分钟':o.expire_hours+' 小时')+'后过期）':Number(o.expire_days)>0?'（'+o.expire_days+' 天后过期）':'');
   if(k==='update')return '✎ '+(o.old?o.old+'\n→ ':'')+o.content+(evStr(o)?' '+evStr(o):'');
   if(k==='stale')return '✕ 标为过时：'+(o.old||o.id);
+  if(k==='redo'){const p=[];if(o.event_date)p.push('事件日期 '+o.event_date);if(o.event_time)p.push('钟点 '+o.event_time);if(o.exp_at)p.push('到期 '+bj(o.exp_at)+(o.exp_at<Date.now()?'（已过，搜索不再带出）':''));return '🕒 '+o.content+'\n→ '+p.join('，');}
   if(k==='merge')return '⊕ 合并 '+(Array.isArray(o.ids)?o.ids.length:0)+' 条 → '+o.content+(Array.isArray(o.olds)&&o.olds.length?'\n（原：'+o.olds.join(' / ')+'）':'');
   return '？'+JSON.stringify(o);
 }
@@ -829,6 +840,21 @@ async function consGo(){
     if(ops.length)opsBox(box,ops,async sel=>{const r=await api('/api/ingest',{ops:sel,actor:ac},60000);box.textContent='';msg.textContent=r.message||'已保存';toast(r.message||'已保存');reload();});
   }catch(e){msg.textContent=e.message;toast(e.message,true);}
   finally{b.disabled=false;}
+}
+let redoSeen=[];
+async function redoGo(first){
+  const msg=$('redomsg'),box=$('redoout'),b=$('redogo');
+  if(first)redoSeen=[];
+  b.disabled=true;msg.textContent='检查中…（最多约 30 秒）';box.textContent='';
+  const nextBtn=more=>{if(more)box.append(h('div',{class:'btns'},h('button',{class:'btn',onclick:()=>redoGo(false)},'检查下一批')));};
+  try{
+    const j=await api('/api/redo',{seen:redoSeen},70000),ops=j.ops||[];
+    redoSeen=redoSeen.concat(j.ids||[]);
+    msg.textContent=j.message||'完成';reveal(msg);
+    if(ops.length)opsBox(box,ops,async sel=>{const r=await api('/api/redo_apply',{ops:sel},30000);box.textContent='';msg.textContent=r.message||'已保存';toast(r.message||'已保存');reload();nextBtn(j.more);});
+    else nextBtn(j.more);
+  }catch(e){msg.textContent=e.message;toast(e.message,true);}
+  finally{b.disabled=false;b.textContent='重新检查';}
 }
 async function loadPend(){
   const box=$('pendbox'),msg=$('pendmsg');box.textContent='';msg.textContent='读取中…';
@@ -958,6 +984,8 @@ function askDiscard(fn){   // 有没保存的修改时，用自己的弹窗确�
     {label:'放弃',danger:true,fn:c=>{c();fn();}}
   ]).foot.firstChild.focus();
 }
+const dlgStack=[];let skipPop=0,afterPop=[];   // 弹窗也进浏览器历史：返回键先关弹窗，不切页签
+function flushPop(){const q=afterPop.splice(0);q.forEach(f=>f());}
 function dialog(title,body,btns,dirty){
   const prev=document.activeElement;
   const guard=()=>{if(dirty&&dirty()){askDiscard(close);return;}close();};
@@ -972,7 +1000,14 @@ function dialog(title,body,btns,dirty){
       else if(!e.shiftKey&&(i<0||i===fs.length-1)){e.preventDefault();fs[0].focus();}
     }
   };
-  const close=()=>{ov.remove();document.removeEventListener('keydown',onKey);if(prev&&prev.focus)prev.focus();};
+  const ent={close:null,guard,dirty,pushed:false};
+  const close=()=>{
+    if(!ov.isConnected)return;
+    ov.remove();document.removeEventListener('keydown',onKey);if(prev&&prev.focus)prev.focus();
+    const i=dlgStack.indexOf(ent);if(i>=0)dlgStack.splice(i,1);
+    if(ent.pushed){ent.pushed=false;skipPop++;try{history.back();}catch(e){skipPop--;}setTimeout(()=>{if(skipPop>0){skipPop=0;flushPop();}},800);}
+  };
+  ent.close=close;
   const foot=h('div',{class:'foot'},btns.map(b=>h('button',{class:'btn'+(b.primary?' primary':'')+(b.danger?' danger':''),onclick:()=>b.fn(close)},b.label)));
   const win=h('div',{class:'win',role:'dialog','aria-modal':'true','aria-label':title},
     h('div',{class:'title'},h('h2',null,title),h('button',{class:'tbtn','aria-label':'关闭',onclick:guard},'X')),
@@ -980,6 +1015,8 @@ function dialog(title,body,btns,dirty){
   const ov=h('div',{class:'ov'},win);
   document.body.append(ov);
   document.addEventListener('keydown',onKey);
+  try{history.pushState({dlg:1},'');ent.pushed=true;}catch(e){}
+  dlgStack.push(ent);
   return {foot};
 }
 function openEdit(m){
@@ -1039,11 +1076,11 @@ function openEdit(m){
             }catch(e2){toast(e2.message,true);}
           };
           if(/^没有保存：可能和已有记忆 /.test(msg)){
-            const mm=/已有记忆 \[([^\]]+)\] ([\s\S]*?) 矛盾。/.exec(msg),oid=mm?mm[1]:'';
-            dialog('可能和旧记忆矛盾',h('div',null,h('p',{class:'txt'},mm?mm[2]:msg),h('p',{class:'hint'},'新情况取代了旧的：点「旧的标为过时并保存」。两条都成立：点「都保留」。')),[
+            const mm=/已有记忆 \[([^\]]+)\] /.exec(msg),oid=mm?mm[1]:'',old=mm?msg.slice(mm.index+mm[0].length).replace(/\s矛盾。如果新情况[\s\S]*$/,''):msg;   // 旧记忆内容里自己带「矛盾。」也不会截错
+            dialog('可能和旧记忆矛盾',h('div',null,h('p',{class:'txt'},old),h('p',{class:'hint'},oid?'新情况取代了旧的：点「旧的标为过时并保存」。两条都成立：点「都保留」。':'没能认出是哪一条旧记忆，请先去列表里手动处理旧的；两条都成立可点「都保留」。')),[
               {label:'取消',fn:x=>x()},
               {label:'都保留',fn:x=>saveForce(x,'')},
-              {label:'旧的标为过时并保存',primary:true,fn:x=>saveForce(x,oid)}
+              ...(oid?[{label:'旧的标为过时并保存',primary:true,fn:x=>saveForce(x,oid)}]:[])
             ]);
             return;
           }
@@ -1088,19 +1125,19 @@ const CATCLS={'偏好':'c1','事实':'c2','事件':'c3','关系':'c4'};
 const WKN=['周日','周一','周二','周三','周四','周五','周六'];
 function evtDiff(d){const p=d.split('-').map(Number),t=todayBJ().split('-').map(Number);return Math.round((Date.UTC(p[0],p[1]-1,p[2])-Date.UTC(t[0],t[1]-1,t[2]))/864e5);}   // 按北京时间算“今天”，和 Worker 一致
 function evtText(d,t){const p=d.split('-').map(Number),n=evtDiff(d),wk=WKN[new Date(Date.UTC(p[0],p[1]-1,p[2])).getUTCDay()];
-  const rel=n===0?'今天':n===1?'明天':n===2?'后天':n===-1?'昨天':n===-2?'前天':n>0?n+'天后':-n+'天前';return d.slice(5)+' '+wk+(t?' '+t:'')+' · '+rel;}
+  const rel=n===0?'今天':n===1?'明天':n===2?'后天':n===-1?'昨天':n===-2?'前天':n>0?n+'天后':-n+'天前';return d+' '+wk+(t?' '+t:'')+' · '+rel;}
 function evStr(o){const d=String(o.event_date||'').slice(0,10),t=o.event_time||String(o.event_date||'').slice(11);return /^\d{4}-\d{2}-\d{2}$/.test(d)?'📅'+d+(t?' '+t:''):'';}   // 提炼结果里的事件日期 / 钟点（兼容“日期 钟点”写在一起）
 const pill=(cls,t)=>h('span',{class:'pill '+cls},t);
 function card(m){
-  const ks=tab==='mem'?qTerms():[],old=isOld(m),long=m.content.length>130||(m.content.match(/\n/g)||[]).length>=6,low=m.content.toLowerCase(),late=long&&ks.length>0&&!ks.some(t=>{const i=low.indexOf(t);return i>=0&&i<100;})&&ks.some(t=>low.includes(t)),open=opened.has(m.id)||late;   // 搜到的词在折叠部分之外就先展开，免得看不到标黄
+  const ks=tab==='mem'?qTerms():[],old=isOld(m),long=m.content.length>130||(m.content.match(/\n/g)||[]).length>=6,low=m.content.toLowerCase(),late=long&&ks.length>0&&!ks.some(t=>{const i=low.indexOf(t);return i>=0&&i<100;})&&ks.some(t=>low.includes(t))&&!closedLong.has(m.id),open=opened.has(m.id)||late;   // 搜到的词在折叠部分之外就先展开，免得看不到标黄
   const body=h('p',{class:'txt'+(long&&!open?' clip':'')},...hlNodes(m.content,ks));
   const fold=long?h('button',{class:'chip sm fold','aria-expanded':open?'true':'false',onclick:e=>{
     const b=e.currentTarget,clip=body.classList.toggle('clip');
-    if(clip)opened.delete(m.id);else opened.add(m.id);
+    if(clip){opened.delete(m.id);closedLong.add(m.id);}else{opened.add(m.id);closedLong.delete(m.id);}
     b.textContent=clip?'展开全文 ▾':'收起 ▴';b.setAttribute('aria-expanded',clip?'false':'true');
   }},open?'收起 ▴':'展开全文 ▾'):null;
   const sm=selMode,on=sm&&sel.has(m.id);
-  const srcBox=m.fr?h('div',{class:'srcbox',hidden:!srcOpen.has(m.id)},h('b',null,m.fr.startsWith('合并自')?'来源：':'提炼自这段对话的开头：'),m.fr):null;
+  const srcBox=m.fr?h('div',{class:'srcbox',hidden:!srcOpen.has(m.id)},h('b',null,m.fr.startsWith('合并自')?'来源：':'来源对话：'),m.fr):null;
   const srcBtn=m.fr?h('button',{class:'chip sm','aria-expanded':srcOpen.has(m.id)?'true':'false',title:'看这条是从哪里记下来的',onclick:e=>{const b=e.currentTarget,on2=srcBox.hidden;srcBox.hidden=!on2;if(on2)srcOpen.add(m.id);else srcOpen.delete(m.id);b.setAttribute('aria-expanded',on2?'true':'false');}},'🧾来源'):null;
   const art=h('article',{class:'mem'+(m.pin?' pinned':'')+(old?' old':'')+(sm?' selmode':'')+(on?' sel':''),role:sm?'checkbox':null,'aria-checked':sm?(on?'true':'false'):null,tabindex:sm?'0':null,
     onclick:sm?e=>{if(e.target.closest('button'))return;toggleSel(m.id,art);}:null,
@@ -1112,7 +1149,7 @@ function card(m){
       m.cat?pill(CATCLS[m.cat]||'','【'+m.cat+'】'):null,
       m.src==='auto'?pill('auto','🤖自动'):null,
       m.evt?pill('evt'+(evtDiff(m.evt)<0?' past':evtDiff(m.evt)<=3?' soon':''),'📅'+evtText(m.evt,m.evh)):null,
-      m.stale?pill('old','已过时'):m.exp?(m.exp<Date.now()?pill('old','已过期'):pill('exp','⏳'+dateOf(m.exp)+' 到期')):null,
+      m.stale?pill('old','已过时'):m.exp?(m.exp<Date.now()?pill('old','已过期'):pill('exp','⏳'+expLabel(m.exp)+' 到期')):null,
       m.hit>0?h('span',{class:'pill act',title:'被搜到用过 '+m.hit+' 次'},'🔁'+m.hit):null,
       m.actor?pill('act','〔'+m.actor+'〕'):null,
       srcBtn,
@@ -1129,7 +1166,7 @@ function empty(title,text,action,ico){
   return h('div',{class:'empty'},ico?h('div',{class:'ico','aria-hidden':'true'},ico):null,h('b',null,title),h('p',null,text),action?h('button',{class:'btn primary',onclick:action[1]},action[0]):null);
 }
 function renderStat(){
-  const n=items.length,pins=items.filter(m=>m.pin).length,near=n>=CAP*0.9,st=$('stat'),led=$('led');
+  const n=items.length,pins=items.filter(m=>m.pin&&!isOld(m)).length,near=n>=CAP*0.9,st=$('stat'),led=$('led');
   const seg=(cls,...k)=>h('span',{class:'seg'+(cls?' '+cls:'')},...k);
   st.textContent='';
   if(n){
@@ -1309,7 +1346,7 @@ function askRestore(j,mode,when){
     }}
   ]).foot.firstChild.focus();
 }
-function go(t,pop){if(tab==='mem')memScroll=scrollY;if(t==='tl'&&selMode){selMode=false;sel.clear();}if(!pop&&t!==tab){try{history.pushState({t},'');}catch(e){}}tab=t;render();scrollTo(0,t==='mem'?memScroll:0);if(t==='set'&&pendN)loadPend();if(t==='set')loadTune();}
+function go(t,pop){if(skipPop>0){afterPop.push(()=>go(t,pop));return;}if(tab==='mem')memScroll=scrollY;if(t==='tl'&&selMode){selMode=false;sel.clear();}if(!pop&&t!==tab){try{history.pushState({t},'');}catch(e){}}tab=t;render();scrollTo(0,t==='mem'?memScroll:0);if(t==='set'&&pendN)loadPend();if(t==='set')loadTune();}
 function render(){
   ['mem','tl','find','set'].forEach(t=>{
     $('v-'+t).hidden=tab!==t;
@@ -1319,6 +1356,7 @@ function render(){
   if(tab==='mem')renderMem();
   if(tab==='tl')renderTL();
   if(tab==='set')fillActors();
+  renderStat();   // 不管在哪一页，同步完都要把灯和容量条刷新
 }
 
 /* ---------- v3.8：时间页（日历 / 时间线） ---------- */
@@ -1339,7 +1377,7 @@ function tlItems(){
   }));
   return map;
 }
-function tlShift(n){const p=tlYM.split('-').map(Number),d=new Date(Date.UTC(p[0],p[1]-1+n,1));tlYM=d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1);renderTL();}
+function tlShift(n){const p=tlYM.split('-').map(Number),d=new Date(Date.UTC(p[0],p[1]-1+n,1));tlYM=d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1);const td=todayBJ();tlSel=td.slice(0,7)===tlYM?td:tlYM+'-01';renderTL();}
 function tlReveal(){const e=$('tlday');if(!e)return;const r=e.getBoundingClientRect(),room=innerHeight-90;if(r.top>room*0.6)scrollBy({top:r.top-room*0.4,behavior:'smooth'});}
 function tlDayCards(parent,a){const w=h('div',{class:'well'});a.forEach(m=>w.append(card(m)));parent.append(w);}
 function renderTL(){
@@ -1556,9 +1594,7 @@ function wipe(){
     {label:'取消',fn:c=>c()},
     {label:'清除',danger:true,fn:c=>{
       ['url','tok','cache'].forEach(ls.del);
-      cfg.url=cfg.tok='';items=[];loaded=false;syncMsg='';syncErr=false;
-      $('u').value=$('k').value='';$('connmsg').textContent='已清除。';
-      c();go('set');toast('已清除本机数据');
+      c();location.reload();   // 直接重载，服务商 / 方案 / 提醒等表单和内存状态一次清干净
     }}
   ]).foot.firstChild.focus();
 }
@@ -1592,12 +1628,14 @@ async function fetchSelf(){
   try{const r=await fetch(location.origin+location.pathname,{cache:'reload',signal:ctl.signal});if(!r.ok)return null;const t=await r.text();return t.includes('APP_VERSION')?t:null;}   // 返回的不像本页（比如登录页、404 页）就当没抓到
   catch(e){return null;}finally{clearTimeout(tm);}
 }
+function updH(){const b=$('updbar');document.documentElement.style.setProperty('--ubh',b&&!b.hidden?b.offsetHeight+'px':'0px');}   // 更新条显示时，把提示条抬到它上面
+addEventListener('resize',updH);
 function showUpd(v,k){
   k=k||v;if(updShown===k)return;updShown=k;const bar=$('updbar');bar.textContent='';
   bar.append(h('span',null,'🔄 发现新版本'+(v&&v!==APP_VERSION?'（'+APP_VERSION+' → '+v+'）':'')+'，点「立即更新」刷新。'),
     h('button',{class:'btn s',onclick:()=>location.reload()},'立即更新'),
-    h('button',{class:'btn s',onclick:()=>{bar.hidden=true;}},'稍后'));
-  bar.hidden=false;
+    h('button',{class:'btn s',onclick:()=>{bar.hidden=true;updH();}},'稍后'));
+  bar.hidden=false;updH();
 }
 async function checkUpdate(manual,boot){
   lastUpd=Date.now();
@@ -1623,7 +1661,16 @@ async function checkUpdate(manual,boot){
 $('ver').textContent=APP_VERSION;
 const TABS=['mem','tl','find','set'];
 TABS.forEach(t=>{$('t-'+t).onclick=()=>{if(t===tab){scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'});return;}go(t);};});   // 再点一下当前页＝回到顶部
-window.addEventListener('popstate',e=>{const t=e.state&&e.state.t;if(TABS.includes(t)&&t!==tab)go(t,true);});
+window.addEventListener('popstate',e=>{
+  if(skipPop>0){skipPop--;if(!skipPop)flushPop();return;}
+  if(dlgStack.length){   // 有弹窗：返回键只关最上面那个，不动页签
+    const top=dlgStack[dlgStack.length-1];
+    if(top.dirty&&top.dirty()){try{history.pushState({dlg:1},'');}catch(x){}top.guard();}   // 有没保存的修改：先补回这一格历史，再走「放弃修改？」
+    else{top.pushed=false;top.close();}
+    return;
+  }
+  const t=e.state&&e.state.t;if(TABS.includes(t)&&t!==tab)go(t,true);
+});
 $('refresh').onclick=()=>refresh(true);
 $('updchk').onclick=async e=>{const b=e.currentTarget;b.disabled=true;setUpd('检查中…');try{await checkUpdate(true,false);}finally{b.disabled=false;}};
 $('selbtn').onclick=()=>{if(!selMode&&!items.length){toast('还没有记忆可选',true);return;}selMode=!selMode;sel.clear();renderMem();};
@@ -1649,7 +1696,7 @@ $('impfile').onchange=async e=>{
 $('impgo').onclick=()=>{const t=$('paste').value.trim();if(!t){toast('先粘贴 JSON',true);return;}importText(t);};
 $('wipe').onclick=wipe;$('reidx').onclick=reindex;$('dupgo').onclick=findDups;$('purge').onclick=purge;
 $('remsave').onclick=()=>saveRem();$('remtest').onclick=e=>remCall('/api/rem_test',e.currentTarget);$('remrun').onclick=e=>remCall('/api/rem_run',e.currentTarget);$('rembarkclr').onclick=()=>saveRem('bark');$('remtgclr').onclick=()=>saveRem('tg');
-$('pendgo').onclick=loadPend;$('consgo').onclick=consGo;$('maint').onclick=maintNow;['cfgrev','cfgpurge','cfgcons','cfgcap','cfgevict','cfgrecall'].forEach(id=>{$(id).onchange=saveCfg;});
+$('pendgo').onclick=loadPend;$('consgo').onclick=consGo;$('redogo').onclick=()=>redoGo(true);$('maint').onclick=maintNow;['cfgrev','cfgpurge','cfgcons','cfgcap','cfgevict','cfgrecall'].forEach(id=>{$(id).onchange=()=>saveCfg(id);});
 document.querySelectorAll('.keyeye').forEach(b=>b.onclick=()=>{ls.set('keyvis',ls.get('keyvis')==='1'?'0':'1');applyKeyVis();});applyKeyVis();
 ['llm','emb'].forEach(k=>{$(k+'-pre').onclick=()=>presSave(k);$(k+'-fetch').onclick=()=>provFetch(k);$(k+'-save').onclick=()=>provSave(k);$(k+'-reset').onclick=()=>provReset(k);$(k+'-pick').onchange=e=>{if(e.target.value)$(k+'-m').value=e.target.value;};});
 $('ingdry').onclick=ingDry;$('inglog').onclick=ingLog;$('sumload').onclick=sumLoad;$('sumgen').onclick=sumGen;$('sumsave').onclick=sumSave;
