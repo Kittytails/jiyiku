@@ -17,7 +17,8 @@
 :root{--face:#c0c0c0;--hi:#fff;--lo:#808080;--dk:#404040;--navy:#000080;--teal:#008080;--tip:#ffffe1;--ink:#000;--sub:#4a4a4a;--bad:#800000;--tp:calc(max(calc(env(safe-area-inset-top) - 16px),calc(min(env(safe-area-inset-top),20px) + 6px)) + 10px);--th:calc(var(--tp) + 40px);--tbh:calc(58px + env(safe-area-inset-bottom))}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html,body{margin:0;touch-action:manipulation}
+html,body{margin:0}
+*{touch-action:manipulation}   /* 禁止双击放大，双指捏合缩放照旧可用 */
 body{background:var(--teal);color:var(--ink);font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%}
 button,input,textarea,select{font:inherit;color:inherit;margin:0;-webkit-appearance:none;appearance:none;border-radius:0}
 #app{display:block;min-height:100vh;min-height:100dvh;max-width:760px;margin:0 auto;background:var(--face);padding-bottom:var(--tbh)}
@@ -77,6 +78,7 @@ textarea.field{resize:none;display:block}
 .grp legend{font-weight:700}
 .lbl{display:block;margin:10px 0 4px;font-weight:700;font-size:15px}
 .lbl:first-of-type{margin-top:0}
+.btns+.lbl,.btns+input+.lbl{margin-top:18px}   /* 按钮行后面的第一个标题别被 :first-of-type 吃掉间距（提示词页「要改哪一项」） */
 .updbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;background:#ffffe1;color:#000;border:2px solid #000;margin:0 0 4px;font-size:14px;font-weight:700}.updbar span{flex:1;min-width:140px}
 #updbar{position:fixed;left:0;right:0;bottom:var(--tbh);max-width:760px;margin:0 auto;z-index:11;box-shadow:0 -2px 0 rgba(0,0,0,.25)}
 .keyrow{display:flex;gap:8px;align-items:stretch}.keyrow .field{flex:1;min-width:0;width:auto}
@@ -304,7 +306,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
         <input class="field" id="emb-u" type="url" inputmode="url" placeholder="https://api.xxx.com/v1" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">
         <label class="lbl" for="emb-k">Key</label>
         <div class="keyrow"><input class="field" id="emb-k" type="password" placeholder="API Key（没有可留空）" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off"><button type="button" class="btn s keyeye" aria-label="显示或隐藏 Key">显示</button></div>
-        <p class="hint keyhint" style="margin-top:4px">「显示」只是让你看清自己刚输入的 Key；已保存的 Key 不会从服务器传回来，只显示末 4 位。</p>
+        <p class="hint" style="margin-top:4px">「显示」只是让你看清自己刚输入的 Key；已保存的 Key 不会从服务器传回来，只显示末 4 位。</p>
         <label class="lbl" for="emb-m">模型名</label>
         <input class="field" id="emb-m" type="text" placeholder="手填，或先点「拉取模型列表」再选" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">
         <select class="field" id="emb-pick" aria-label="从拉取到的列表里选模型" style="margin-top:8px;width:100%" hidden></select>
@@ -324,7 +326,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
         <input class="field" id="llm-u" type="url" inputmode="url" placeholder="https://api.xxx.com/v1" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">
         <label class="lbl" for="llm-k">Key</label>
         <div class="keyrow"><input class="field" id="llm-k" type="password" placeholder="API Key（没有可留空）" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off"><button type="button" class="btn s keyeye" aria-label="显示或隐藏 Key">显示</button></div>
-        <p class="hint keyhint" style="margin-top:4px">「显示」只是让你看清自己刚输入的 Key；已保存的 Key 不会从服务器传回来，只显示末 4 位。</p>
+        <p class="hint" style="margin-top:4px">「显示」只是让你看清自己刚输入的 Key；已保存的 Key 不会从服务器传回来，只显示末 4 位。</p>
         <label class="lbl" for="llm-m">模型名</label>
         <input class="field" id="llm-m" type="text" placeholder="手填，或先点「拉取模型列表」再选" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">
         <select class="field" id="llm-pick" aria-label="从拉取到的列表里选模型" style="margin-top:8px;width:100%" hidden></select>
@@ -348,7 +350,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 
       <fieldset class="grp" data-g="pmt">
         <legend><button type="button" class="lg" aria-expanded="true">提示词</button></legend><div class="gb">
-        <p class="hint">提炼、摘要、合并等给语言模型的提示词，在这里改、存多套、一键切换，不用再改代码。存的是整段文字；没选自定义就用内置默认。保存后最多 30 秒生效。</p>
+        <p class="hint">提炼、摘要、合并等给语言模型的提示词，在这里改、存多套、一键切换，不用再改代码。存的是整段文字；每一项都内置了「完整版」（默认）和「精简版」（字数约一半，小模型或想省 token 时用）两套，也可以自己改、存多套。保存后最多 30 秒生效。</p>
         <div class="btns"><button class="btn" id="pmexp">导出全部</button><button class="btn" id="pmcpy">复制</button><button class="btn" id="pmimp">导入</button></div>
         <input type="file" id="pmfile" accept=".json,application/json" hidden>
         <label class="lbl" for="pmk">要改哪一项</label>
@@ -362,7 +364,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
         <label class="lbl" for="pmn">这套的名字</label>
         <input class="field" id="pmn" type="text" maxlength="30" placeholder="比如：更严格的提炼" autocapitalize="off" autocorrect="off" spellcheck="false">
         <div class="btns"><button class="btn primary" id="pmsave">保存并启用</button><button class="btn" id="pmnew">另存为新的</button></div>
-        <div class="btns"><button class="btn" id="pmdef">载入默认文字</button><button class="btn" id="pmtry">用草稿试提炼</button><button class="btn" id="pmdel">删除这套</button></div>
+        <div class="btns"><button class="btn" id="pmdef">载入完整版文字</button><button class="btn" id="pmtry">用草稿试提炼</button><button class="btn" id="pmdel">删除这套</button></div>
         <p class="hint" id="pmmsg">载入中…</p>
       </div></fieldset>
 
@@ -502,7 +504,9 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 
 <script>
 'use strict';
-const APP_VERSION='v7.3';
+const APP_VERSION='v7.6';
+/* 禁止双击放大（iOS 对 touch-action 不总是认）：两次点击间隔太短时拦掉第二次的默认缩放；按钮 / 输入框不拦，免得吞掉连点；双指捏合缩放不受影响 */
+(function(){let lt=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<350&&e.touches.length===0&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label,summary,[role=button]')))e.preventDefault();lt=n;},{passive:false});})();
 let CAP=1500;const MAXLEN=2000,PAGE=80;
 const $=id=>document.getElementById(id);
 const ls={
@@ -762,8 +766,8 @@ async function syncOnce(manual){
 const FROM={web:'网页里填的',env:'Worker 环境变量'};
 let semOn=false;
 function setSem(on,src,from){
-  semOn=!!on;const e=$('semst');if(!e)return;
-  e.textContent=on?(src==='ext'?'已接入你自己的向量接口（'+(FROM[from]||'')+'），语义搜索已启用（关键词 + 语义混合排序）。换过接口或模型后，要点一次「重建语义索引」。':'Worker 已绑定 Workers AI，语义搜索已启用（关键词 + 语义混合排序）。'):'还没配向量：在下面填向量接口，或绑定 Workers AI（变量名 AI），目前只有关键词搜索。';
+  semOn=!!on;
+  $('semst').textContent=on?(src==='ext'?'已接入你自己的向量接口（'+(FROM[from]||'')+'），语义搜索已启用（关键词 + 语义混合排序）。换过接口或模型后，要点一次「重建语义索引」。':'Worker 已绑定 Workers AI，语义搜索已启用（关键词 + 语义混合排序）。'):'还没配向量：在下面填向量接口，或绑定 Workers AI（变量名 AI），目前只有关键词搜索。';
 }
 async function reindex(){
   const out=$('semmsg'),b=$('reidx');b.disabled=true;out.textContent='建索引中…（可能要几十秒，别关页面）';
@@ -830,19 +834,20 @@ function purge(){
 }
 let pendN=0;
 function setPend(n){
-  const c=pendN=Number(n)||0,b=$('pbdg'),g=$('pendlg');
-  if(b){b.hidden=!c;b.textContent=c;}
-  if(g)g.textContent='待审'+(c?'（'+c+'）':'');
+  const c=pendN=Number(n)||0,b=$('pbdg');
+  b.hidden=!c;b.textContent=c;
+  $('pendlg').textContent='待审'+(c?'（'+c+'）':'');
 }
 function setCfg(c,force){
-  if(!c||!$('cfgrev'))return;
+  if(!c)return;
   const sel=$('cfgpurge'),pv=String(c.purge||0);
   if(![...sel.options].some(o=>o.value===pv))sel.append(h('option',{value:pv},'放满 '+pv+' 天后清理'));
-  $('cfgrev').checked=!!c.review;if($('cfgchat'))$('cfgchat').checked=!!c.chatlog;if($('cfglow'))$('cfglow').checked=c.lowrev!==false;sel.value=pv;$('cfgcons').checked=!!c.cons;if($('cfgevict'))$('cfgevict').checked=!!c.evict;if($('cfgrecall')){const rs=$('cfgrecall'),rv=String(c.recall==null?30:c.recall);if(![...rs.options].some(o=>o.value===rv))rs.append(h('option',{value:rv},rv+' 天没提起'));rs.value=rv;}
-  const cp=$('cfgcap');if(cp&&(force||document.activeElement!==cp)){cp.value=c.cap>0?c.cap:'';cp.placeholder=String(CAP);}
+  $('cfgrev').checked=!!c.review;$('cfgchat').checked=!!c.chatlog;$('cfglow').checked=c.lowrev!==false;sel.value=pv;$('cfgcons').checked=!!c.cons;$('cfgevict').checked=!!c.evict;
+  const rs=$('cfgrecall'),rv=String(c.recall==null?30:c.recall);if(![...rs.options].some(o=>o.value===rv))rs.append(h('option',{value:rv},rv+' 天没提起'));rs.value=rv;
+  const cp=$('cfgcap');if(force||document.activeElement!==cp){cp.value=c.cap>0?c.cap:'';cp.placeholder=String(CAP);}
 }
 function setRem(r){
-  if(!r||!$('remon'))return;
+  if(!r)return;
   const hs=$('remhour');if(!hs.options.length)for(let i=0;i<24;i++)hs.append(h('option',{value:String(i)},pad(i)+':00'));
   $('remon').checked=!!r.on;const ld=$('remlead');if(document.activeElement!==ld)ld.value=r.lead;hs.value=String(r.hour);
   $('rembark').placeholder=r.bark?'已设置（留空＝不改）':'https://api.day.app/你的Key，或只填 Key';
@@ -881,15 +886,14 @@ async function maintNow(){
   finally{b.disabled=false;}
 }
 function setLlm(on,rw,from){
-  const e=$('llmst');if(!e)return;
-  e.textContent=on?'已接入语言模型（'+(FROM[from]||'')+'）：自动提炼、关系摘要可用，'+(rw?'搜索词改写已开启。':'搜索词改写已关闭（可在「设置 → 搜索与回顾调节」里打开）。'):'还没配语言模型：在下面填服务商地址、Key 和模型名，或设环境变量 LLM_URL / LLM_MODEL / LLM_KEY。自动提炼、搜索词改写、关系摘要都用不了。';
+  $('llmst').textContent=on?'已接入语言模型（'+(FROM[from]||'')+'）：自动提炼、关系摘要可用，'+(rw?'搜索词改写已开启。':'搜索词改写已关闭（可在「设置 → 搜索与回顾调节」里打开）。'):'还没配语言模型：在下面填服务商地址、Key 和模型名，或设环境变量 LLM_URL / LLM_MODEL / LLM_KEY。自动提炼、搜索词改写、关系摘要都用不了。';
 }
 /* 服务商设置（语言模型 / 向量接口共用）：地址 + Key + 模型名，可拉取模型列表再选 */
 const provSeen={llm:'',emb:''};   // 上一次填进输入框的服务端状态；没变就不动输入框，免得同步时把你正在打的字冲掉
 function setProv(p){
   if(!p)return;
   ['llm','emb'].forEach(k=>{
-    const v=p[k];if(!v||!$(k+'-u'))return;
+    const v=p[k];if(!v)return;
     const sig=JSON.stringify(v);if(provSeen[k]===sig)return;
     provSeen[k]=sig;
     $(k+'-u').value=v.u;$(k+'-m').value=v.m;$(k+'-k').value='';
@@ -936,7 +940,7 @@ const presSeen={};
 function setPres(list){
   if(!Array.isArray(list))return;
   ['llm','emb'].forEach(k=>{
-    const box=$(k+'-pres');if(!box)return;
+    const box=$(k+'-pres');
     const xs=list.filter(x=>x.kind===k),sig=JSON.stringify(xs);if(presSeen[k]===sig)return;presSeen[k]=sig;
     box.textContent='';
     if(!xs.length){box.append(h('p',{class:'hint'},'还没有保存的方案。填好地址、Key、模型名后点「存为方案」，之后可以一键切换。'));return;}
@@ -1119,7 +1123,7 @@ async function ingLog(){
   }catch(e){msg.textContent=e.message;}
 }
 function fillActors(){
-  const dl=$('sumdl');if(!dl)return;
+  const dl=$('sumdl');
   dl.textContent='';[...new Set(items.map(m=>m.actor).filter(Boolean))].forEach(x=>dl.append(h('option',{value:x})));
 }
 async function sumLoad(){
@@ -1371,12 +1375,12 @@ function renderStat(){
   st.append(seg('grow',syncMsg));
   if(syncErr&&configured())st.append(h('button',{type:'button',class:'btn s',onclick:()=>refresh(true)},'重试'));
   st.classList.toggle('err',syncErr||near);
-  const cb=$('capbox');
-  if(cb){cb.textContent='';const pct=CAP?Math.min(100,Math.round(n/CAP*100)):0;
-    cb.append(h('div',{class:'capline'},h('b',null,'当前容量'),h('span',null,n+' / '+CAP+' 条（'+pct+'%）')),
+  const cb=$('capbox'),pct=CAP?Math.min(100,Math.round(n/CAP*100)):0;
+  cb.textContent='';
+  cb.append(h('div',{class:'capline'},h('b',null,'当前容量'),h('span',null,n+' / '+CAP+' 条（'+pct+'%）')),
       h('span',{class:'meter'+(near?' warn':''),'aria-hidden':'true'},h('i',{style:'width:'+pct+'%'})),
-      h('p',{class:'hint',style:'margin:4px 0 0'},'📌 置顶 '+Math.min(pins,5)+' / 5'+(pins>5?'（多出来的不生效）':'')+(near?' · 快满了，建议清理或调高上限':'')));}
-  if(led)led.className='led '+(syncErr?'err':syncMsg==='同步中…'?'busy':lastSync?'ok':'');
+      h('p',{class:'hint',style:'margin:4px 0 0'},'📌 置顶 '+Math.min(pins,5)+' / 5'+(pins>5?'（多出来的不生效）':'')+(near?' · 快满了，建议清理或调高上限':'')));
+  led.className='led '+(syncErr?'err':syncMsg==='同步中…'?'busy':lastSync?'ok':'');
 }
 function clearFilters(){$('q').value='';tagSel='';impSel=-1;catSel='';flagSel='';shown=PAGE;renderMem(true);}
 function renderMem(reset){
@@ -1640,6 +1644,7 @@ function tlLine(body,map){
 /* ---------- v7.2：提示词（改 / 存多套 / 切换），存在 Worker 的 pmt，没选自定义就用内置默认 ---------- */
 let PM=null,pmKind='ing',pmAt=0,pmBase='';   // pmBase＝编辑框载入时的文字，用来判断有没有没保存的改动
 const pmK=()=>PM&&PM.kinds.find(x=>x.k===pmKind);
+const LITE='builtin-lite';   // 内置精简版的编号（和 Worker 一致）
 const pmCur=()=>{const k=pmK();return k?k.sets.find(x=>x.id===k.use)||null:null;};   // 当前启用的自定义套；null＝默认
 function pmDirty(){return !!PM&&$('pmx').value!==pmBase;}
 function pmFill(text,name){$('pmx').value=text;pmBase=text;$('pmn').value=name||'';pmCount();}
@@ -1647,16 +1652,17 @@ function pmCount(){const v=$('pmx').value.length;$('pmcnt').textContent=v+' 字�
 function pmBuild(keepText){
   const k=pmK();if(!k)return;
   const kb=$('pmk');kb.textContent='';
-  PM.kinds.forEach(x=>kb.append(h('option',{value:x.k},x.name+(x.use?'（已自定义）':''))));kb.value=pmKind;
+  PM.kinds.forEach(x=>kb.append(h('option',{value:x.k},x.name+(x.use===LITE?'（精简版）':x.use?'（已自定义）':''))));kb.value=pmKind;
   const ub=$('pmu');ub.textContent='';
-  ub.append(h('option',{value:''},'默认（内置）'));
+  ub.append(h('option',{value:''},'完整版（内置，默认）'),h('option',{value:LITE},'精简版（内置，字数约一半）'));
   k.sets.forEach(x=>ub.append(h('option',{value:x.id},x.name)));ub.value=k.use||'';
   $('pmhint').textContent=k.hint;
   const c=pmCur();
-  if(!keepText)pmFill(c?c.text:k.def,c?c.name:'');
+  const lite=k.use===LITE;
+  if(!keepText)pmFill(c?c.text:lite?k.alt:k.def,c?c.name:'');
   $('pmdel').hidden=!c;$('pmtry').hidden=pmKind!=='ing';
   $('pmsave').textContent=c?'保存并启用':'存成新的并启用';$('pmnew').hidden=!c;
-  $('pmmsg').textContent=c?'正在用自定义的「'+c.name+'」。':'正在用内置默认。想改的话直接改上面的文字，起个名字，点保存。';
+  $('pmmsg').textContent=c?'正在用自定义的「'+c.name+'」。':lite?'正在用内置精简版。想改的话直接改上面的文字，起个名字，点保存（会另存成自定义的）。':'正在用内置完整版。想改的话直接改上面的文字，起个名字，点保存。';
 }
 async function loadPmt(force){
   if(!configured())return;
@@ -1671,9 +1677,10 @@ async function pmCall(path,body,okmsg){
 }
 async function pmSave(asNew){
   const k=pmK(),c=pmCur(),text=$('pmx').value.trim(),name=$('pmn').value.trim()||(c&&!asNew?c.name:'');
+  if(!k){toast('提示词还没载入，先连线，或把 Worker 换成 v7.2 以上',true);return;}
   if(!text){toast('提示词不能为空',true);return;}
   if(!name){toast('给这套提示词起个名字',true);$('pmn').focus();return;}
-  if(!asNew&&!c&&text===k.def.trim()){toast('和内置默认一样，没有改动',true);return;}
+  if(!asNew&&!c&&(text===k.def.trim()||text===k.alt.trim())){toast('和内置的一样，没有改动（想直接用内置的，在上面「现在启用哪一套」里选）',true);return;}
   const b=$('pmsave'),b2=$('pmnew');b.disabled=b2.disabled=true;
   const j=await pmCall('/api/prompt_save',{kind:pmKind,name,text,use:true,id:asNew||!c?undefined:c.id});
   b.disabled=b2.disabled=false;if(j)pmBuild(false);
@@ -1692,8 +1699,8 @@ function pmDel(){
 async function pmTry(){
   const t=$('ingt').value.trim(),ac=$('inga').value.trim(),psys=$('pmx').value.trim(),b=$('pmtry'),msg=$('pmmsg'),box=$('ingout');
   if(!psys){toast('提示词不能为空',true);return;}
-  if(!t){const g0=document.querySelector('[data-g=ing] .lg');if(g0&&g0.getAttribute('aria-expanded')!=='true')g0.click();toast('先到「提炼对话」里粘贴一段对话',true);$('ingt').focus();return;}
-  const gl=document.querySelector('[data-g=ing] .lg');if(gl&&gl.getAttribute('aria-expanded')!=='true')gl.click();   // 结果显示在「提炼对话」下面，收起着的话先展开
+  const gl=document.querySelector('[data-g=ing] .lg');if(gl.getAttribute('aria-expanded')!=='true')gl.click();   // 结果显示在「提炼对话」下面，收起着的话先展开
+  if(!t){toast('先到「提炼对话」里粘贴一段对话',true);$('ingt').focus();return;}
   b.disabled=true;msg.textContent='用这份草稿试提炼中…（最多约 25 秒，不会保存任何东西）';box.textContent='';
   try{
     const j=await api('/api/ingest',{text:t,actor:ac,dry:true,psys},60000),ops=(j.ops||[]).filter(o=>o&&o.op);
@@ -1704,10 +1711,10 @@ async function pmTry(){
   finally{b.disabled=false;}
 }
 $('pmk').onchange=e=>{const v=e.target.value;pmGuard(()=>{pmKind=v;pmBuild(false);});if(pmDirty())e.target.value=pmKind;};
-$('pmu').onchange=e=>{const v=e.target.value;e.target.value=pmCur()?pmCur().id:'';pmGuard(()=>pmSwitch(v));};
+$('pmu').onchange=e=>{const v=e.target.value;e.target.value=pmK().use||'';pmGuard(()=>pmSwitch(v));};
 $('pmx').oninput=pmCount;
 $('pmsave').onclick=()=>pmSave(false);$('pmnew').onclick=()=>pmSave(true);$('pmdel').onclick=pmDel;
-$('pmdef').onclick=()=>{const k=pmK();if(!k)return;pmFill(k.def,$('pmn').value);toast('已载入默认文字，还没保存');};
+$('pmdef').onclick=()=>{const k=pmK();if(!k)return;pmFill(k.def,$('pmn').value);toast('已载入完整版文字，还没保存');};
 $('pmtry').onclick=pmTry;
 /* v7.3：一键导出 / 导入全部自定义提示词（一个 JSON 文件；导入时同一项里名字相同的更新、不同名的新增，带 use 标记的顺便启用） */
 function pmExportText(){
@@ -1792,8 +1799,8 @@ function applyTune(view){
   tuneRecallNote();
 }
 function tuneRecallNote(){
-  const n=$('recallnote'),off=$('cfgrecall')&&$('cfgrecall').value==='0';
-  if(n)n.textContent=off?'回顾现在是关闭的，下面三项暂时不起作用。选一个天数就会打开。':'回顾会偶尔多带一条很久没提起的「重要」或「普通」记忆，也会偶尔随机翻一条小事。';
+  const off=$('cfgrecall').value==='0';
+  $('recallnote').textContent=off?'回顾现在是关闭的，下面三项暂时不起作用。选一个天数就会打开。':'回顾会偶尔多带一条很久没提起的「重要」或「普通」记忆，也会偶尔随机翻一条小事。';
 }
 async function tuneSave(k,val){
   try{const j=await api('/api/tune',{set:{[k]:val}});applyTune(j.tune);toast('已保存');}
@@ -1930,7 +1937,7 @@ function initGroups(){
    抓取用 cache:'reload'，顺便把浏览器里缓存的旧页面也换掉，主屏幕图标下次打开就是新版。地址和 Token 存在本机，刷新不丢。 */
 const hashStr=t=>{let a=2166136261,b=5381;for(let i=0;i<t.length;i++){const c=t.charCodeAt(i);a=Math.imul(a^c,16777619);b=(Math.imul(b,33)^c)>>>0;}return (a>>>0).toString(36)+b.toString(36)+t.length.toString(36);};
 let baseHash='',lastUpd=0,updShown='';
-const setUpd=m=>{const e=$('updmsg');if(e)e.textContent=m;};
+const setUpd=m=>{$('updmsg').textContent=m;};
 const verOf=t=>{const m=/const APP_VERSION='([^']+)'/.exec(t);return m?m[1]:'';};
 async function fetchSelf(){
   if(!/^https?:$/.test(location.protocol))return null;   // 本地文件打开的没法抓
@@ -1938,7 +1945,7 @@ async function fetchSelf(){
   try{const r=await fetch(location.origin+location.pathname,{cache:'reload',signal:ctl.signal});if(!r.ok)return null;const t=await r.text();return t.includes('APP_VERSION')?t:null;}   // 返回的不像本页（比如登录页、404 页）就当没抓到
   catch(e){return null;}finally{clearTimeout(tm);}
 }
-function updH(){const b=$('updbar');document.documentElement.style.setProperty('--ubh',b&&!b.hidden?b.offsetHeight+'px':'0px');}   // 更新条显示时，把提示条抬到它上面
+function updH(){const b=$('updbar');document.documentElement.style.setProperty('--ubh',!b.hidden?b.offsetHeight+'px':'0px');}   // 更新条显示时，把提示条抬到它上面
 addEventListener('resize',updH);
 function showUpd(v,k){
   k=k||v;if(updShown===k)return;updShown=k;const bar=$('updbar');bar.textContent='';
