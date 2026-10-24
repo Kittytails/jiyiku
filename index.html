@@ -346,6 +346,26 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
         <div id="ingout"></div>
       </div></fieldset>
 
+      <fieldset class="grp" data-g="pmt">
+        <legend><button type="button" class="lg" aria-expanded="true">提示词</button></legend><div class="gb">
+        <p class="hint">提炼、摘要、合并等给语言模型的提示词，在这里改、存多套、一键切换，不用再改代码。存的是整段文字；没选自定义就用内置默认。保存后最多 30 秒生效。</p>
+        <div class="btns"><button class="btn" id="pmexp">导出全部</button><button class="btn" id="pmcpy">复制</button><button class="btn" id="pmimp">导入</button></div>
+        <input type="file" id="pmfile" accept=".json,application/json" hidden>
+        <label class="lbl" for="pmk">要改哪一项</label>
+        <select class="field" id="pmk"></select>
+        <p class="hint tsub" id="pmhint"></p>
+        <label class="lbl" for="pmu">现在启用哪一套</label>
+        <select class="field" id="pmu"></select>
+        <label class="lbl" for="pmx">提示词内容</label>
+        <textarea class="field" id="pmx" rows="12" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
+        <p class="hint tsub" id="pmcnt"></p>
+        <label class="lbl" for="pmn">这套的名字</label>
+        <input class="field" id="pmn" type="text" maxlength="30" placeholder="比如：更严格的提炼" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <div class="btns"><button class="btn primary" id="pmsave">保存并启用</button><button class="btn" id="pmnew">另存为新的</button></div>
+        <div class="btns"><button class="btn" id="pmdef">载入默认文字</button><button class="btn" id="pmtry">用草稿试提炼</button><button class="btn" id="pmdel">删除这套</button></div>
+        <p class="hint" id="pmmsg">载入中…</p>
+      </div></fieldset>
+
       <fieldset class="grp" data-g="pend">
         <legend><button type="button" class="lg" id="pendlg" aria-expanded="true">待审</button></legend><div class="gb">
         <div class="btns"><button class="btn" id="pendgo">刷新待审</button></div>
@@ -482,7 +502,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 
 <script>
 'use strict';
-const APP_VERSION='v6.7';
+const APP_VERSION='v7.3';
 let CAP=1500;const MAXLEN=2000,PAGE=80;
 const $=id=>document.getElementById(id);
 const ls={
@@ -1520,7 +1540,7 @@ function askRestore(j,mode,when){
     }}
   ]).foot.firstChild.focus();
 }
-function go(t,pop){if(skipPop>0){afterPop.push(()=>go(t,pop));return;}if(tab==='mem')memScroll=scrollY;if(t==='tl'&&selMode){selMode=false;sel.clear();}if(!pop&&t!==tab){try{history.pushState({t},'');}catch(e){}}tab=t;render();scrollTo(0,t==='mem'?memScroll:0);if(t==='set'&&pendN)loadPend();if(t==='set')loadTune();}
+function go(t,pop){if(skipPop>0){afterPop.push(()=>go(t,pop));return;}if(tab==='mem')memScroll=scrollY;if(t==='tl'&&selMode){selMode=false;sel.clear();}if(!pop&&t!==tab){try{history.pushState({t},'');}catch(e){}}tab=t;render();scrollTo(0,t==='mem'?memScroll:0);if(t==='set'&&pendN)loadPend();if(t==='set'){loadTune();loadPmt();}}
 function render(){
   ['mem','tl','find','set'].forEach(t=>{
     $('v-'+t).hidden=tab!==t;
@@ -1617,6 +1637,119 @@ function tlLine(body,map){
   if(rest>0)body.append(h('div',{class:'more'},h('button',{class:'btn',onclick:()=>{tlShown+=40;renderTL();}},'显示更多（还有 '+rest+' 条）')));
 }
 
+/* ---------- v7.2：提示词（改 / 存多套 / 切换），存在 Worker 的 pmt，没选自定义就用内置默认 ---------- */
+let PM=null,pmKind='ing',pmAt=0,pmBase='';   // pmBase＝编辑框载入时的文字，用来判断有没有没保存的改动
+const pmK=()=>PM&&PM.kinds.find(x=>x.k===pmKind);
+const pmCur=()=>{const k=pmK();return k?k.sets.find(x=>x.id===k.use)||null:null;};   // 当前启用的自定义套；null＝默认
+function pmDirty(){return !!PM&&$('pmx').value!==pmBase;}
+function pmFill(text,name){$('pmx').value=text;pmBase=text;$('pmn').value=name||'';pmCount();}
+function pmCount(){const v=$('pmx').value.length;$('pmcnt').textContent=v+' 字（上限 '+(PM?PM.max:20000)+'）'+(pmDirty()?'，有没保存的改动':'');}
+function pmBuild(keepText){
+  const k=pmK();if(!k)return;
+  const kb=$('pmk');kb.textContent='';
+  PM.kinds.forEach(x=>kb.append(h('option',{value:x.k},x.name+(x.use?'（已自定义）':''))));kb.value=pmKind;
+  const ub=$('pmu');ub.textContent='';
+  ub.append(h('option',{value:''},'默认（内置）'));
+  k.sets.forEach(x=>ub.append(h('option',{value:x.id},x.name)));ub.value=k.use||'';
+  $('pmhint').textContent=k.hint;
+  const c=pmCur();
+  if(!keepText)pmFill(c?c.text:k.def,c?c.name:'');
+  $('pmdel').hidden=!c;$('pmtry').hidden=pmKind!=='ing';
+  $('pmsave').textContent=c?'保存并启用':'存成新的并启用';$('pmnew').hidden=!c;
+  $('pmmsg').textContent=c?'正在用自定义的「'+c.name+'」。':'正在用内置默认。想改的话直接改上面的文字，起个名字，点保存。';
+}
+async function loadPmt(force){
+  if(!configured())return;
+  if(!force&&PM&&Date.now()-pmAt<15000)return;pmAt=Date.now();
+  try{const j=await api('/api/prompts',{});const first=!PM;PM=j;pmBuild(!first&&pmDirty());}
+  catch(e){pmAt=0;$('pmmsg').textContent=/not found|404/i.test(e.message)?'Worker 还是旧版本，先换成 v7.2 或更新的 Worker，这里才能用。':e.message;}
+}
+function pmGuard(fn){if(pmDirty())askDiscard(fn);else fn();}   // 切换前有没保存的改动，先确认
+async function pmCall(path,body,okmsg){
+  try{const j=await api(path,body);PM={kinds:j.kinds,max:j.max};pmAt=Date.now();toast(j.message||okmsg||'已保存');return j;}
+  catch(e){toast(e.message,true);return null;}
+}
+async function pmSave(asNew){
+  const k=pmK(),c=pmCur(),text=$('pmx').value.trim(),name=$('pmn').value.trim()||(c&&!asNew?c.name:'');
+  if(!text){toast('提示词不能为空',true);return;}
+  if(!name){toast('给这套提示词起个名字',true);$('pmn').focus();return;}
+  if(!asNew&&!c&&text===k.def.trim()){toast('和内置默认一样，没有改动',true);return;}
+  const b=$('pmsave'),b2=$('pmnew');b.disabled=b2.disabled=true;
+  const j=await pmCall('/api/prompt_save',{kind:pmKind,name,text,use:true,id:asNew||!c?undefined:c.id});
+  b.disabled=b2.disabled=false;if(j)pmBuild(false);
+}
+async function pmSwitch(id){
+  const j=await pmCall('/api/prompt_use',{kind:pmKind,id});
+  if(j)pmBuild(false);else pmBuild(true);
+}
+function pmDel(){
+  const c=pmCur();if(!c)return;
+  dialog('删除这套提示词？',h('p',{class:'txt'},'「'+c.name+'」会被删掉，并改回内置默认。'),[
+    {label:'取消',fn:x=>x()},
+    {label:'删除',danger:true,fn:async x=>{x();const j=await pmCall('/api/prompt_del',{id:c.id});if(j)pmBuild(false);}}
+  ]).foot.firstChild.focus();
+}
+async function pmTry(){
+  const t=$('ingt').value.trim(),ac=$('inga').value.trim(),psys=$('pmx').value.trim(),b=$('pmtry'),msg=$('pmmsg'),box=$('ingout');
+  if(!psys){toast('提示词不能为空',true);return;}
+  if(!t){const g0=document.querySelector('[data-g=ing] .lg');if(g0&&g0.getAttribute('aria-expanded')!=='true')g0.click();toast('先到「提炼对话」里粘贴一段对话',true);$('ingt').focus();return;}
+  const gl=document.querySelector('[data-g=ing] .lg');if(gl&&gl.getAttribute('aria-expanded')!=='true')gl.click();   // 结果显示在「提炼对话」下面，收起着的话先展开
+  b.disabled=true;msg.textContent='用这份草稿试提炼中…（最多约 25 秒，不会保存任何东西）';box.textContent='';
+  try{
+    const j=await api('/api/ingest',{text:t,actor:ac,dry:true,psys},60000),ops=(j.ops||[]).filter(o=>o&&o.op);
+    msg.textContent='草稿试提炼：'+(j.message||'完成')+(ops.length?'。结果显示在上面「提炼对话」下方，勾选保存的话是真的会入库。':'');$('ingmsg').textContent=msg.textContent;
+    if(ops.length)opsBox(box,ops,async sel=>{const r=await api('/api/ingest',{ops:sel,actor:ac,from:t},60000);box.textContent='';toast(r.message||'已保存');reload();});
+    reveal($('ingmsg'));
+  }catch(e){msg.textContent=e.message;toast(e.message,true);}
+  finally{b.disabled=false;}
+}
+$('pmk').onchange=e=>{const v=e.target.value;pmGuard(()=>{pmKind=v;pmBuild(false);});if(pmDirty())e.target.value=pmKind;};
+$('pmu').onchange=e=>{const v=e.target.value;e.target.value=pmCur()?pmCur().id:'';pmGuard(()=>pmSwitch(v));};
+$('pmx').oninput=pmCount;
+$('pmsave').onclick=()=>pmSave(false);$('pmnew').onclick=()=>pmSave(true);$('pmdel').onclick=pmDel;
+$('pmdef').onclick=()=>{const k=pmK();if(!k)return;pmFill(k.def,$('pmn').value);toast('已载入默认文字，还没保存');};
+$('pmtry').onclick=pmTry;
+/* v7.3：一键导出 / 导入全部自定义提示词（一个 JSON 文件；导入时同一项里名字相同的更新、不同名的新增，带 use 标记的顺便启用） */
+function pmExportText(){
+  const sets=[];PM.kinds.forEach(k=>k.sets.forEach(x=>sets.push({k:k.k,kind:k.name,name:x.name,text:x.text,use:k.use===x.id})));
+  return JSON.stringify({app:'xsj-prompts',v:1,exported:new Date().toISOString(),sets},null,1);
+}
+async function pmExport(){
+  if(!PM){await loadPmt(true);}
+  if(!PM||!PM.kinds.some(k=>k.sets.length)){toast('还没有自定义的提示词可导出',true);return;}
+  const name='prompts-'+dateOf(Date.now())+'.json',txt=pmExportText();
+  for(const type of ['application/json','text/plain']){
+    try{
+      const f=new File([txt],name,{type});
+      if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'提示词备份'});return;}
+    }catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  const url=URL.createObjectURL(new Blob([txt],{type:'application/json'})),a=h('a',{href:url,download:name});
+  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
+  toast('如果没有弹出保存，请用「复制」',false);
+}
+async function pmCopy(){
+  if(!PM){await loadPmt(true);}
+  if(!PM||!PM.kinds.some(k=>k.sets.length)){toast('还没有自定义的提示词可复制',true);return;}
+  const txt=pmExportText();
+  try{await navigator.clipboard.writeText(txt);toast('已复制全部自定义提示词');}
+  catch(e){const p=$('paste');p.value=txt;p.focus();p.select();toast('请手动复制「备份」里文本框的内容',true);}
+}
+async function pmImportText(t){
+  let o;try{o=JSON.parse(t);}catch(e){toast('不是有效的 JSON 文件',true);return;}
+  const sets=Array.isArray(o)?o:o&&Array.isArray(o.sets)?o.sets:null;
+  if(!sets){toast('文件里没有找到提示词',true);return;}
+  pmGuard(async()=>{
+    const b=$('pmimp');b.disabled=true;
+    try{const j=await api('/api/prompt_import',{sets});PM={kinds:j.kinds,max:j.max};pmAt=Date.now();pmBuild(false);$('pmmsg').textContent=j.message;toast(j.message,false);}
+    catch(e){toast(e.message,true);}
+    finally{b.disabled=false;}
+  });
+}
+$('pmexp').onclick=pmExport;$('pmcpy').onclick=pmCopy;$('pmimp').onclick=()=>$('pmfile').click();
+$('pmfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let t;try{t=await f.text();}catch(err){toast('读取文件失败',true);return;}pmImportText(t);};
+
+
 /* ---------- v4.0：搜索与回顾调节（直接在网页里改，存在 Worker 的 cfg.tune，优先于环境变量） ---------- */
 const pctT=v=>Math.round(v*100)+'%';
 const TUNE_UI=[
@@ -1626,6 +1759,8 @@ const TUNE_UI=[
   {k:'RECALL_SMALL',title:'翻小事的比例',scale:100,fmt:v=>v<=0?'0%（只翻重要和普通的）':pctT(v)+' 的回顾改翻一条小事',desc:'小事是完全随机挑的，不看话题；结果里以 🎲 开头。'},
   {sec:'搜索',note:'小手机每次搜记忆时用到的。'},
   {k:'SEM_MIN',title:'语义匹配及格线',scale:1,fmt:v=>v.toFixed(2),desc:'调低：更容易搜到，但可能混进不相干的；调高：更严格。不确定就先别动，去「试搜」看分数再调。'},
+  {k:'SEM_SURE',title:'只靠语义时的把握线',scale:100,fmt:v=>v<=0?'0（和以前一样）':'及格线之上再多 '+pctT(v)+' 才算',desc:'关键词没命中、只是意思有点像的记忆，要比「语义匹配及格线」再高这一截才会被带出。总有不相干的记忆被带出来就调高；该找到的找不到就调低；设 0 是以前的样子。'},
+  {k:'SEM_HUB',title:'「万金油」记忆扣分力度',scale:1,fmt:v=>v<=0?'0（不扣）':'×'+v,desc:'有些记忆和任何问句都有点像，于是每次都被带出来。系统会算出它比别的记忆「多像」的那部分，按这个倍数从语义分里扣掉。试搜页里被扣过分的会显示「原 x.xx，万金油扣 x.xx」。还总是那几条出现就调高；该找到的找不到就调低；设 0 是以前的样子。'},
   {k:'REL_CUT',title:'相对分数线',scale:100,fmt:v=>v<=0?'0%（不砍，条数够就都带）':'低于第一名的 '+pctT(v)+' 就不带',desc:'只有 1 条真相关时，后面凑数的弱相关会被砍掉。调高：更干净但可能漏；设 0 就是以前的样子。'},
   {k:'ASSOC',title:'联想召回最多带几条',scale:1,fmt:v=>v<=0?'关闭':v+' 条',desc:'搜完后顺带带出相关的几条（结果里以 ↳ 开头）。'},
   {k:'REWRITE',title:'查询改写',bool:true,desc:'搜索前让语言模型把问题改写成几个短查询（要先配好语言模型，最多多等 4 秒）。'},
@@ -1887,7 +2022,7 @@ setTimeout(()=>checkUpdate(false,true),1500);
   tab=configured()?(TABS.includes(h0)?h0:'mem'):'set';
   try{history.replaceState({t:tab},'');}catch(e){}
   render();
-  if(tab==='set'&&configured())loadTune();
+  if(tab==='set'&&configured()){loadTune();loadPmt();}
   refresh(false);
 })();
 window.addEventListener('online',()=>{if(configured())refresh(false,true);});   // v6.0：恢复联网就同步
