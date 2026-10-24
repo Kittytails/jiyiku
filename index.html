@@ -272,7 +272,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
         <label class="lbl" for="fq">输入一句话</label>
         <input class="field" id="fq" type="search" placeholder="比如：我喜欢吃什么" enterkeyhint="search" autocapitalize="off" autocorrect="off" spellcheck="false">
         <label class="lbl" for="fa">角色（可空，模拟小手机注入的 _actor）</label>
-        <input class="field" id="fa" type="text" placeholder="留空＝不过滤" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <input class="field" id="fa" type="text" list="sumdl" placeholder="留空＝不过滤" autocapitalize="off" autocorrect="off" spellcheck="false">
         <label class="lbl" for="flim">最多返回</label>
         <select class="field" id="flim"><option value="3">3 条</option><option value="5" selected>5 条</option><option value="10">10 条</option></select>
         <label class="row" for="frw"><input type="checkbox" id="frw" checked>查询改写（需要语言模型，最多多等 4 秒）</label>
@@ -340,7 +340,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
         <label class="lbl" for="ingt">粘贴一段对话</label>
         <textarea class="field" id="ingt" rows="5" placeholder="用户：……&#10;角色：……" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
         <label class="lbl" for="inga">角色（可空）</label>
-        <input class="field" id="inga" type="text" placeholder="留空＝不指定角色" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <input class="field" id="inga" type="text" list="sumdl" placeholder="留空＝不指定角色" autocapitalize="off" autocorrect="off" spellcheck="false">
         <div class="btns"><button class="btn primary" id="ingdry">试提炼</button><button class="btn" id="inglog">提炼记录</button></div>
         <p class="hint" id="ingmsg">先看模型会提炼出什么，勾选后再保存，不会直接写进去。小手机「自动储存原文对话」发来的内容会自动提炼并保存，结果在「提炼记录」里（会显示收到的原文开头，方便检查说话人有没有标对）。</p>
         <div id="ingout"></div>
@@ -370,12 +370,17 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
         <legend><button type="button" class="lg" aria-expanded="true">自动整理</button></legend><div class="gb">
         <div class="capbox" id="capbox"></div>
         <label class="row" for="cfgrev"><input type="checkbox" id="cfgrev">自动提炼先进待审（确认后才入库）</label>
+        <label class="row" for="cfglow"><input type="checkbox" id="cfglow">低把握的自动进待审（偏好类、找不到原话、说话人对不上的；其余照常入库。上面那项打开时全部都进待审）</label>
         <label class="lbl" for="cfgpurge">自动清理过期 / 过时的记忆</label>
         <select class="field" id="cfgpurge"><option value="0">关闭</option><option value="30">放满 30 天后清理</option><option value="60">放满 60 天后清理</option><option value="90">放满 90 天后清理</option></select>
         <label class="row" for="cfgcons"><input type="checkbox" id="cfgcons">定时合并零碎小事（建议先进待审）</label>
         <label class="lbl" for="cfgcap">记忆条数上限（≥100，没有上限，留空＝用默认 1500 或环境变量）</label>
         <input class="field" id="cfgcap" type="number" inputmode="numeric" min="0" step="100" placeholder="1500">
         <label class="row" for="cfgevict"><input type="checkbox" id="cfgevict">满了自动清掉最没用的（先清已过期 / 已过时的，再清最久没用到的「小事」；置顶、普通、重要的不动）</label>
+        <label class="row" for="cfgchat"><input type="checkbox" id="cfgchat">保存聊天原文（明文存在云端，只存不用，将来用来补记忆 / 核对来源；每个角色最多约 30 万字，满了删最旧的）</label>
+        <input class="field" id="chatq" placeholder="搜聊天原文：关键词，空格隔开，都要出现；留空看最新的">
+        <div class="btns"><button class="btn" id="chatview" type="button">看聊天原文</button><button class="btn danger" id="chatclr" type="button">清空聊天原文</button></div>
+        <p class="hint" id="chatmsg"></p><div id="chatout"></div>
         <p class="hint">几千条以上建议用付费版 Worker（免费版 CPU 不够，搜索可能超时）。库超过约 3MB 会自动分片存储，不用管。</p>
         <div class="btns"><button class="btn" id="maint">现在整理一次</button></div>
         <p class="hint" id="cfgmsg">清理只删「已过期 / 已标过时、并且放满上面天数」的，置顶的不动。定时合并要在 Worker「设置 → 触发器」里加一个 Cron（比如 0 20 * * 0＝每周日晚上）才会自己跑；不加的话，点「现在整理一次」手动跑。</p>
@@ -477,7 +482,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 
 <script>
 'use strict';
-const APP_VERSION='v5.5';
+const APP_VERSION='v6.7';
 let CAP=1500;const MAXLEN=2000,PAGE=80;
 const $=id=>document.getElementById(id);
 const ls={
@@ -512,14 +517,15 @@ function normUrl(u){
   if(!/^https?:\/\//i.test(u))u='https://'+u;
   return u.replace(/\/(mcp|api(\/.*)?)?\/*$/i,'');
 }
-async function api(path,body,ms){
+async function apiRaw(path,body,ms){
   if(!configured())throw new Error('先到「设置」填服务地址和 Token');
+  if(navigator.onLine===false){const ne=new Error('现在没有网络');ne.net=true;throw ne;}
   const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),ms||30000);
   let r;
   try{
     r=await fetch(cfg.url+path,{method:'POST',signal:ctl.signal,headers:{'content-type':'application/json',authorization:'Bearer '+cfg.tok},body:JSON.stringify(body||{})});
   }catch(e){
-    throw new Error(e&&e.name==='AbortError'?'连接超时，稍后再试':'连不上服务，检查网址和网络');
+    const to=e&&e.name==='AbortError',ne=new Error(to?'连接超时，稍后再试（服务端可能已经处理了，先点「刷新」看看再决定要不要重做）':'连不上服务，检查网址和网络');if(to)ne.timeout=true;else ne.net=true;throw ne;   // 超时不等于没网：服务端可能已经处理了，不能当离线存起来，免得重复
   }finally{clearTimeout(timer);}
   if(r.status===401)throw new Error('Token 不对，到「设置 → 连线」重新填');
   let j=null;try{j=await r.json();}catch(e){}
@@ -530,6 +536,143 @@ async function mcpCall(name,args){
   const j=await api('/',{jsonrpc:'2.0',id:Date.now(),method:'tools/call',params:{name,arguments:args}});
   if(!j.result)throw new Error((j.error&&j.error.message)||'没有返回结果');
   return {text:(j.result.content||[]).map(c=>c.text||'').join('\n'),isError:!!j.result.isError};
+}
+
+/* ---------- v6.0：离线修改（没网时增删改先存在本机，联网后自动同步）---------- */
+const OFFQ=new Set(['/api/save','/api/update','/api/delete','/api/batch']);   // 只有这四个能离线做；设置、提炼、待审、整理这些还是要联网
+const loadJ=(k,d)=>{try{const v=JSON.parse(ls.get(k)||'null');return Array.isArray(v)?v:d;}catch(e){return d;}};
+let Q=loadJ('offq',[]),FQ=loadJ('offfail',[]),flushing=false,savedTmp=false,flushAuthErr=null;   // savedTmp＝这次同步里有离线新增的发出去了（本地的 tmp- 编号该换成正式的了）；flushAuthErr＝同步时 Token 被拒   // Q＝等着同步的；FQ＝服务端明确拒绝、要人来看的
+const saveQ=()=>{ls.set('offq',JSON.stringify(Q));ls.set('offfail',JSON.stringify(FQ));};
+const isTmp=id=>String(id||'').startsWith('tmp-');   // 离线新增的记忆先用临时编号，同步后换成服务端的正式编号
+const splitTags=v=>(Array.isArray(v)?v:String(v==null?'':v).split(/[,，、]+/)).map(x=>String(x).trim()).filter(Boolean);
+const expTs=v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v||''))?Date.parse(v+'T23:59:59+08:00'):0;
+function patchItem(m,b){   // 把一次修改（字段名和接口一致）先套在本地那条记忆上
+  if(b.content!==undefined)m.content=String(b.content).trim().slice(0,MAXLEN);
+  if(b.tags!==undefined)m.tags=splitTags(b.tags).slice(0,10);
+  if(b.pin!==undefined)m.pin=!!b.pin;
+  if(b.actor!==undefined)m.actor=String(b.actor||'').trim();
+  if(b.importance!==undefined&&[0,1,2].includes(Number(b.importance)))m.imp=Number(b.importance);
+  if(b.category!==undefined)m.cat=String(b.category||'');
+  if(b.stale!==undefined)m.stale=!!b.stale;
+  if(b.expire!==undefined)m.exp=expTs(b.expire);
+  if(b.event_date!==undefined){const d=/^\d{4}-\d{2}-\d{2}$/.test(String(b.event_date||''))?String(b.event_date):'';m.evt=d;if(!d)m.evh='';}
+  if(b.event_time!==undefined)m.evh=m.evt?String(b.event_time||''):'';
+}
+function patchBatch(m,p){
+  if(p.find)m.content=m.content.split(p.find).join(p.replace||'').slice(0,MAXLEN);
+  if(p.tags_add){const add=splitTags(p.tags_add);m.tags=[...new Set([...m.tags,...add])].slice(0,10);}
+  if(p.tags_del){const del=splitTags(p.tags_del).map(x=>x.toLowerCase());m.tags=m.tags.filter(t=>!del.includes(t.toLowerCase()));}
+  patchItem(m,{actor:p.actor,importance:p.importance,category:p.category,stale:p.stale,pin:p.pin});
+}
+function newTmp(b,id){const now=Date.now(),m=normItem({id,content:'x',ts:now,upd:now});m.content='';patchItem(m,b);return m;}
+const rebuild=(e,m)=>{const f=e.body&&e.body.force;e.body=bodyFromItem(m);if(f)e.body.force=true;};   // 重建离线新增的内容时，别丢掉「仍然新增」的 force
+function bodyFromItem(m){return {content:m.content,tags:m.tags.join(','),pin:m.pin,actor:m.actor,importance:m.imp,category:m.cat,...(m.exp?{expire:dateOf(m.exp)}:{}),...(m.evt?{event_date:m.evt,...(m.evh?{event_time:m.evh}:{})}:{})};}
+function applyLocal(path,b,tmpId){
+  if(path==='/api/save'){if(!items.some(x=>x.id===tmpId))items.push(newTmp(b,tmpId));return;}
+  if(path==='/api/update'){const m=items.find(x=>x.id===String(b.id));if(m)patchItem(m,b);return;}
+  if(path==='/api/delete'){items=items.filter(x=>x.id!==String(b.id));return;}
+  if(path==='/api/batch'){const ids=new Set((b.ids||[]).map(String));
+    if(b.action==='delete')items=items.filter(x=>!ids.has(x.id));
+    else if(b.patch)items.forEach(m=>{if(ids.has(m.id))patchBatch(m,b.patch);});}
+}
+function tmpOp(path,b){   // 操作的是还没同步的离线新增：直接改本地那条和队列里那条（服务端还没有它，不用发请求）
+  if(path==='/api/update'||path==='/api/delete'){
+    const id=String(b.id),m=items.find(x=>x.id===id),e=Q.find(x=>x.tmp===id);
+    if(path==='/api/delete'){items=items.filter(x=>x.id!==id);Q=Q.filter(x=>x.tmp!==id);}
+    else if(m){const b2={...b};delete b2.stale;patchItem(m,b2);if(e)rebuild(e,m);}
+    return;
+  }
+  const ids=(b.ids||[]).map(String).filter(isTmp);
+  if(b.action==='delete'){items=items.filter(x=>!ids.includes(x.id));Q=Q.filter(x=>!ids.includes(x.tmp));}
+  else if(b.patch){const p={...b.patch};delete p.stale;items.forEach(m=>{if(ids.includes(m.id)){patchBatch(m,p);const e=Q.find(x=>x.tmp===m.id);if(e)rebuild(e,m);}});}
+}
+function enqueue(path,body,syncing){
+  if(Q.length>=500)throw new Error('离线修改攒了 500 条，先联网同步一下再改');
+  const e={path,body:JSON.parse(JSON.stringify(body)),t:Date.now()};
+  if(path==='/api/save')e.tmp='tmp-'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  Q.push(e);applyLocal(path,e.body,e.tmp);saveQ();cacheSave();render();
+  return {message:syncing?'正在同步中，这次修改已先存在本机，稍后自动同步（'+Q.length+' 条待同步）':'没有网络，已先存在本机，联网后自动同步（'+Q.length+' 条待同步）',queued:true};
+}
+const tmpGone=ids=>ids.some(id=>isTmp(id)&&!Q.some(x=>x.tmp===String(id)));   // 临时编号已经不在队列里＝已经同步出去了，服务端有正式编号
+async function pullItems(){   // 同步出去离线新增的之后，马上把列表换成服务端的，免得本地还挂着 tmp- 编号
+  try{const j=await apiRaw('/api/list',{});items=(j.items||[]).map(normItem);reapplyQueue();cacheSave();render();}catch(e){}
+}
+async function api(path,body,ms){
+  if(!OFFQ.has(path))return apiRaw(path,body,ms);
+  body=body||{};
+  if((path==='/api/update'||path==='/api/delete')&&isTmp(body.id)){
+    if(tmpGone([body.id]))throw new Error('这条记忆刚同步到服务端，编号变了，请先点「刷新」再操作');
+    tmpOp(path,body);saveQ();cacheSave();render();return {message:'已修改（这条还没同步，联网后一起同步）',queued:true};
+  }
+  if(path==='/api/batch'&&(body.ids||[]).some(isTmp)){
+    if(tmpGone((body.ids||[]).map(String)))throw new Error('选中的有记忆刚同步到服务端，编号变了，请先点「刷新」再操作');
+    tmpOp(path,body);saveQ();cacheSave();
+    const rest=(body.ids||[]).map(String).filter(x=>!isTmp(x));
+    if(!rest.length){render();return {message:'已完成（离线新增的记忆，联网后同步）',queued:true};}
+    body={...body,ids:rest};
+  }
+  if(Q.length&&!flushing){   // 先把之前攒的发出去，保证顺序
+    savedTmp=false;flushAuthErr=null;
+    await flushQueue();
+    if(flushAuthErr)throw flushAuthErr;   // Token 不对：明说，别当成没网存起来
+    if(savedTmp){savedTmp=false;await pullItems();}
+  }
+  if(!Q.length){
+    try{return await apiRaw(path,body,ms);}
+    catch(e){if(!(e&&e.net))throw e;}   // 只有「连不上」才转成离线保存；服务端明确拒绝的照常报错
+  }
+  return enqueue(path,body,flushing);
+}
+async function flushQueue(){
+  if(flushing||!Q.length||!configured())return;
+  flushing=true;const bad0=FQ.length;
+  try{
+    while(Q.length){
+      const e=Q[0];let r;
+      try{r=await apiRaw(e.path,e.body,60000);}
+      catch(err){
+        if(err.net||err.timeout)return;   // 没网 / 超时：留着，下次再发
+        if(/^Token 不对/.test(err.message)){flushAuthErr=err;return;}   // Token 不对：留着，并让调用的人知道
+        Q.shift();
+        if(e.path!=='/api/save'&&/找不到/.test(err.message)){saveQ();continue;}   // 要改 / 删的那条别处已经没了：当作同步完成
+        FQ.push({...e,err:err.message});saveQ();continue;
+      }
+      Q.shift();
+      if(e.path==='/api/save'){if(/^没有保存/.test(r.message||''))FQ.push({...e,err:r.message});else savedTmp=true;}   // 服务端说有相近 / 矛盾的：要人来决定
+      saveQ();
+    }
+  }finally{
+    flushing=false;saveQ();
+    if(FQ.length>bad0){toast((FQ.length-bad0)+' 条离线修改没能同步，点底部状态栏的「查看」处理',true);}
+    renderStat();
+  }
+}
+const reapplyQueue=()=>Q.forEach(e=>applyLocal(e.path,e.body,e.tmp));   // 刷新拿到服务端的列表后，把还没发出去的修改再盖上去
+function opLabel(e){
+  const sn=s=>{s=String(s||'');return s.length>60?s.slice(0,60)+'…':s;},nm=id=>{const m=items.find(x=>x.id===String(id));return m?sn(m.content):'编号 '+id;};
+  if(e.path==='/api/save')return '新增：'+sn(e.body.content);
+  if(e.path==='/api/update')return '修改：'+nm(e.body.id);
+  if(e.path==='/api/delete')return '删除：'+nm(e.body.id);
+  return '批量'+(e.body.action==='delete'?'删除':'修改')+' '+(e.body.ids||[]).length+' 条';
+}
+function failView(){
+  if(!FQ.length)return;
+  const e=FQ[0],n=FQ.length;
+  const done=async(retry,c)=>{
+    FQ.shift();
+    if(retry){Q.push(e.path==='/api/save'?{...e,body:{...e.body,force:true},err:undefined}:{...e,err:undefined});applyLocal(e.path,Q[Q.length-1].body,e.tmp);}
+    saveQ();c();render();
+    if(retry){await flushQueue();reload();}
+    if(FQ.length)failView();
+  };
+  dialog('离线修改没同步成功（'+n+' 条）',h('div',null,
+    h('p',{class:'txt'},opLabel(e)),
+    h('p',{class:'hint warn'},'服务端的回复：'+e.err),
+    e.path==='/api/save'&&e.body.content?h('p',{class:'hint'},'完整内容：'+e.body.content):null),[
+    {label:'稍后',fn:c=>c()},
+    {label:'丢弃这条',danger:true,fn:c=>done(false,c)},
+    {label:e.path==='/api/save'?'仍然新增':'再试一次',primary:true,fn:c=>done(true,c)}
+  ]);
 }
 
 /* ---------- 数据 ---------- */
@@ -582,8 +725,9 @@ async function refresh(manual,force){
 async function syncOnce(manual){
   syncMsg='同步中…';syncErr=false;renderStat();
   try{
+    await flushQueue();   // v6.0：离线时攒的修改先发出去
     const j=await api('/api/list',{});
-    items=(j.items||[]).map(normItem);
+    items=(j.items||[]).map(normItem);reapplyQueue();
     if(Number(j.cap)>0)CAP=Number(j.cap);const pv=j.prov||{};setSem(!!j.ai,j.src,pv.emb&&pv.emb.from);setLlm(!!j.llm,!!j.rw,pv.llm&&pv.llm.from);setProv(j.prov);setPres(j.pres);setRem(j.rem);setPend(j.pend);setCfg(j.cfg);
     loaded=true;lastSync=Date.now();cacheSave();fillActors();
     syncMsg='已同步 '+bj(Date.now()).slice(11);
@@ -674,7 +818,7 @@ function setCfg(c,force){
   if(!c||!$('cfgrev'))return;
   const sel=$('cfgpurge'),pv=String(c.purge||0);
   if(![...sel.options].some(o=>o.value===pv))sel.append(h('option',{value:pv},'放满 '+pv+' 天后清理'));
-  $('cfgrev').checked=!!c.review;sel.value=pv;$('cfgcons').checked=!!c.cons;if($('cfgevict'))$('cfgevict').checked=!!c.evict;if($('cfgrecall')){const rs=$('cfgrecall'),rv=String(c.recall==null?30:c.recall);if(![...rs.options].some(o=>o.value===rv))rs.append(h('option',{value:rv},rv+' 天没提起'));rs.value=rv;}
+  $('cfgrev').checked=!!c.review;if($('cfgchat'))$('cfgchat').checked=!!c.chatlog;if($('cfglow'))$('cfglow').checked=c.lowrev!==false;sel.value=pv;$('cfgcons').checked=!!c.cons;if($('cfgevict'))$('cfgevict').checked=!!c.evict;if($('cfgrecall')){const rs=$('cfgrecall'),rv=String(c.recall==null?30:c.recall);if(![...rs.options].some(o=>o.value===rv))rs.append(h('option',{value:rv},rv+' 天没提起'));rs.value=rv;}
   const cp=$('cfgcap');if(cp&&(force||document.activeElement!==cp)){cp.value=c.cap>0?c.cap:'';cp.placeholder=String(CAP);}
 }
 function setRem(r){
@@ -700,7 +844,7 @@ async function remCall(path,btn){
   catch(e){toast(e.message,true);}
   finally{btn.disabled=false;}
 }
-const CFGKEY={cfgrev:'review',cfgpurge:'purge',cfgcons:'cons',cfgcap:'cap',cfgevict:'evict',cfgrecall:'recall'};
+const CFGKEY={cfgrev:'review',cfglow:'lowrev',cfgchat:'chatlog',cfgpurge:'purge',cfgcons:'cons',cfgcap:'cap',cfgevict:'evict',cfgrecall:'recall'};
 async function saveCfg(id){
   // 只发被改的那一项：控件在首次同步回来前还是 HTML 默认值，全发会把别的设置写回默认
   const el=$(id),k=CFGKEY[id];if(!el||!k)return;
@@ -813,9 +957,9 @@ function presDel(x){
   ]);
 }
 function opText(o){
-  const k=String(o.op||'').toLowerCase(),imp=String(o.importance==null?'':o.importance);
-  if(k==='add')return '＋ '+(o.subject?'〔'+o.subject+'的事〕':'')+(o.category?'【'+o.category+'】':'')+(evStr(o)?evStr(o)+' ':'')+o.content+(imp==='2'||imp==='重要'?' ⭐':imp==='0'||imp==='小事'?'（小事）':'')+(o.scope==='角色'||o.subject==='角色'||o.subject==='双方'?'（只属于这个角色）':'')+(Number(o.expire_hours)>0?'（'+(Number(o.expire_hours)<1?Math.round(Number(o.expire_hours)*60)+' 分钟':o.expire_hours+' 小时')+'后过期）':Number(o.expire_days)>0?'（'+o.expire_days+' 天后过期）':'');
-  if(k==='update')return '✎ '+(o.old?o.old+'\n→ ':'')+o.content+(evStr(o)?' '+evStr(o):'');
+  const k=String(o.op||'').toLowerCase(),imp=String(o.importance==null?'':o.importance),wy=o.why&&(k==='add'||k==='update')?'\n⚠️ 低把握：'+o.why+(o.fr?'\n🧾 '+o.fr:''):'';   // v5.6：低把握的带原因和来源原话，方便判断
+  if(k==='add')return '＋ '+(o.subject?'〔'+o.subject+'的事〕':'')+(o.category?'【'+o.category+'】':'')+(evStr(o)?evStr(o)+' ':'')+o.content+(imp==='2'||imp==='重要'?' ⭐':imp==='0'||imp==='小事'?'（小事）':'')+(o.scope==='角色'||o.subject==='角色'||o.subject==='双方'?'（只属于这个角色）':'')+(Number(o.expire_hours)>0?'（'+(Number(o.expire_hours)<1?Math.round(Number(o.expire_hours)*60)+' 分钟':o.expire_hours+' 小时')+'后过期）':Number(o.expire_days)>0?'（'+o.expire_days+' 天后过期）':'')+wy;
+  if(k==='update')return '✎ '+(o.old?o.old+'\n→ ':'')+o.content+(evStr(o)?' '+evStr(o):'')+wy;
   if(k==='stale')return '✕ 标为过时：'+(o.old||o.id);
   if(k==='redo'){const p=[];if(o.event_date)p.push('事件日期 '+o.event_date);if(o.event_time)p.push('钟点 '+o.event_time);if(o.exp_at)p.push('到期 '+bj(o.exp_at)+(o.exp_at<Date.now()?'（已过，搜索不再带出）':''));return '🕒 '+o.content+'\n→ '+p.join('，');}
   if(k==='merge')return '⊕ 合并 '+(Array.isArray(o.ids)?o.ids.length:0)+' 条 → '+o.content+(Array.isArray(o.olds)&&o.olds.length?'\n（原：'+o.olds.join(' / ')+'）':'');
@@ -846,13 +990,13 @@ async function redoGo(first){
   const msg=$('redomsg'),box=$('redoout'),b=$('redogo');
   if(first)redoSeen=[];
   b.disabled=true;msg.textContent='检查中…（最多约 30 秒）';box.textContent='';
-  const nextBtn=more=>{if(more)box.append(h('div',{class:'btns'},h('button',{class:'btn',onclick:()=>redoGo(false)},'检查下一批')));};
+  const nextBtn=more=>{if(more&&!box.querySelector('.redonext'))box.append(h('div',{class:'btns redonext'},h('button',{class:'btn',onclick:()=>redoGo(false)},'检查下一批')));};
   try{
     const j=await api('/api/redo',{seen:redoSeen},70000),ops=j.ops||[];
     redoSeen=redoSeen.concat(j.ids||[]);
     msg.textContent=j.message||'完成';reveal(msg);
     if(ops.length)opsBox(box,ops,async sel=>{const r=await api('/api/redo_apply',{ops:sel},30000);box.textContent='';msg.textContent=r.message||'已保存';toast(r.message||'已保存');reload();nextBtn(j.more);});
-    else nextBtn(j.more);
+    nextBtn(j.more);   // 不管有没有建议、保存没保存，还有下一批就一直显示
   }catch(e){msg.textContent=e.message;toast(e.message,true);}
   finally{b.disabled=false;b.textContent='重新检查';}
 }
@@ -860,7 +1004,7 @@ async function loadPend(){
   const box=$('pendbox'),msg=$('pendmsg');box.textContent='';msg.textContent='读取中…';
   try{
     const j=await api('/api/pending',{}),it=j.items||[];setPend(it.length);
-    msg.textContent=it.length?'共 '+it.length+' 批待确认（新的在上）。勾选要的再点「保存勾选的」，不要的点「丢弃」。':'没有待审的。'+(j.review?'':'（「先进待审」现在是关闭的）');
+    msg.textContent=it.length?'共 '+it.length+' 批待确认（新的在上）。勾选要的再点「保存勾选的」，不要的点「丢弃」。':'没有待审的。'+(j.review?'':j.low?'（现在只有低把握的提炼会自动进来）':'（「先进待审」和「低把握自动进待审」现在都是关闭的）');
     const bats=[];let goAll=null;
     const pendCount=()=>{if(goAll)goAll.textContent='保存全部勾选的（'+bats.reduce((a,b)=>a+b.picks.filter(Boolean).length,0)+'）';};
     it.forEach(e=>{
@@ -927,6 +1071,21 @@ async function ingDry(){
   }catch(e){msg.textContent=e.message;toast(e.message,true);}
   finally{b.disabled=false;}
 }
+async function chatView(){
+  const box=$('chatout'),msg=$('chatmsg');box.textContent='';msg.textContent='读取中…';
+  try{
+    const j=await api('/api/chat',{q:$('chatq').value.trim(),limit:60}),st=j.stat||[],it=j.items||[];
+    msg.textContent=(j.on?'':'（「保存聊天原文」现在是关闭的）')+(st.length?'已存：'+st.map(e=>(e.a||'共用')+' '+e.n+' 行 / '+Math.round(e.chars/1000)/10+' 万字').join('；')+'。':'还没有存聊天原文。')+(j.total>it.length?' 匹配 '+j.total+' 行，显示最新 '+it.length+' 行。':it.length?' 匹配 '+it.length+' 行。':'');
+    it.forEach(x=>box.append(h('p',{class:'txt'},fmtTime(x.t)+(x.a?' 〔'+x.a+'〕':'')+' '+x.l)));
+    reveal(msg);
+  }catch(e){msg.textContent=e.message;}
+}
+function chatClear(){
+  dialog('清空聊天原文？',h('p',{class:'txt'},'所有角色存下来的聊天原文都会删掉，不能撤销。已提炼出的记忆不受影响。'),[
+    {label:'取消',fn:c=>c()},
+    {label:'清空',danger:true,fn:async c=>{try{const r=await api('/api/chat_clear',{all:true});c();$('chatout').textContent='';$('chatmsg').textContent=r.message||'已清空';toast(r.message||'已清空');}catch(e){toast(e.message,true);}}}
+  ]).foot.firstChild.focus();
+}
 async function ingLog(){
   const msg=$('ingmsg'),box=$('ingout');box.textContent='';msg.textContent='读取中…';
   try{
@@ -935,7 +1094,7 @@ async function ingLog(){
     lg.forEach(x=>box.append(h('div',{class:'grp dupg'},
       h('p',{class:'hint',style:'margin:0'},fmtTime(x.t)+(x.a?' · 〔'+x.a+'〕':'')+(x.manual?' · 手动保存':'')+(x.q?' · 已转待审':'')+(x.err?'':' · 新增 '+(x.add||0)+'，更新 '+(x.upd||0)+(x.mrg?'，合并 '+x.mrg:'')+'，过时 '+(x.stale||0)+'，跳过 '+(x.skip||0))),
       x.err?h('p',{class:'txt warn'},'出错：'+x.err):null,
-      x.raw?h('p',{class:'hint',style:'margin:2px 0;word-break:break-all'},'收到的原文开头：'+x.raw):null,
+      x.raw?h('p',{class:'hint',style:'margin:2px 0;word-break:break-all'},'收到的原文开头（已标好谁是谁）：'+x.raw):null,
       (x.ops||[]).map(o=>h('p',{class:'txt'},o)))));
   }catch(e){msg.textContent=e.message;}
 }
@@ -1098,6 +1257,13 @@ function openEdit(m){
   ],dirty);
   setTimeout(()=>ta.focus(),60);
 }
+function undoOffline(arr,qe){   // v6.1：离线删除的撤销：队列里那条删除还没发出去，直接拿掉、本地恢复；已经发出去了就走正常的导回
+  const i=qe?Q.indexOf(qe):-1;
+  if(i<0){undoDelete(arr);return;}
+  Q.splice(i,1);
+  arr.forEach(m=>{if(!items.some(x=>x.id===m.id))items.push(m);});
+  saveQ();cacheSave();render();toast('已撤销删除');
+}
 async function undoDelete(arr){   // 把刚删掉的原样导回去（编号、时间、置顶、标签都保留）
   try{
     const r=await api('/api/import',{items:arr},60000);
@@ -1115,7 +1281,12 @@ function askDelete(m){
   const d=dialog('删除这条记忆？',h('p',{class:'txt'},snip),[
     {label:'取消',fn:c=>c()},
     {label:'删除',danger:true,fn:async c=>{
-      try{await api('/api/delete',{id:m.id});items=items.filter(x=>x.id!==m.id);cacheSave();c();render();toast('已删除',false,{label:'撤销',fn:()=>undoDelete([m])});}
+      try{
+        const r=await api('/api/delete',{id:m.id}),qe=r&&r.queued&&!isTmp(m.id)?Q[Q.length-1]:null;   // 离线删的：撤销＝把队列里这条拿掉（导回接口要联网，而且服务端那条还在）
+        items=items.filter(x=>x.id!==m.id);cacheSave();c();render();
+        if(r&&r.queued&&!qe)toast('已删除（这条还没同步过，联网后不会留下）');
+        else toast(r&&r.queued?'已删除（离线，联网后同步）':'已删除',false,{label:'撤销',fn:()=>qe?undoOffline([m],qe):undoDelete([m])});
+      }
       catch(e){toast(e.message,true);}
     }}
   ]);
@@ -1175,6 +1346,8 @@ function renderStat(){
   }
   if(n&&(tagSel||impSel>=0||catSel||flagSel||$('q').value.trim()))st.append(seg('','匹配 '+visible().length));
   if(syncErr&&n)st.append(seg('warn','显示的是上次同步的内容'));
+  if(Q.length){st.append(seg('warn','⏳ '+Q.length+' 条离线修改待同步'));if(configured())st.append(h('button',{type:'button',class:'btn s',onclick:()=>refresh(true)},'立即同步'));}
+  if(FQ.length){st.append(seg('warn','⚠️ '+FQ.length+' 条没同步成功'));st.append(h('button',{type:'button',class:'btn s',onclick:failView},'查看'));}
   st.append(seg('grow',syncMsg));
   if(syncErr&&configured())st.append(h('button',{type:'button',class:'btn s',onclick:()=>refresh(true)},'重试'));
   st.classList.toggle('err',syncErr||near);
@@ -1258,7 +1431,8 @@ async function batchApi(body){                    // 成功返回 true；失败�
   const gone=body.action==='delete'?items.filter(m=>sel.has(m.id)):null;
   try{
     const r=await api('/api/batch',{ids:[...sel],...body},60000);
-    toast(r.message||'已完成',false,gone&&gone.length?{label:'撤销',fn:()=>undoDelete(gone)}:null);sel.clear();renderMem();reload();return true;
+    const real=gone?gone.filter(m=>!isTmp(m.id)):[],qe=r&&r.queued&&real.length?Q[Q.length-1]:null;   // 离线批量删：只有真实记忆能撤销（没同步过的离线新增已经直接丢掉了）
+    toast(r&&r.queued&&gone?'已删除 '+gone.length+' 条（离线，联网后同步）':(r.message||'已完成'),false,real.length&&(!r.queued||qe)?{label:'撤销',fn:()=>qe?undoOffline(real,qe):undoDelete(real)}:null);sel.clear();renderMem();reload();return true;
   }catch(e){toast(e.message,true);return false;}
   finally{batching=false;}
 }
@@ -1452,6 +1626,7 @@ const TUNE_UI=[
   {k:'RECALL_SMALL',title:'翻小事的比例',scale:100,fmt:v=>v<=0?'0%（只翻重要和普通的）':pctT(v)+' 的回顾改翻一条小事',desc:'小事是完全随机挑的，不看话题；结果里以 🎲 开头。'},
   {sec:'搜索',note:'小手机每次搜记忆时用到的。'},
   {k:'SEM_MIN',title:'语义匹配及格线',scale:1,fmt:v=>v.toFixed(2),desc:'调低：更容易搜到，但可能混进不相干的；调高：更严格。不确定就先别动，去「试搜」看分数再调。'},
+  {k:'REL_CUT',title:'相对分数线',scale:100,fmt:v=>v<=0?'0%（不砍，条数够就都带）':'低于第一名的 '+pctT(v)+' 就不带',desc:'只有 1 条真相关时，后面凑数的弱相关会被砍掉。调高：更干净但可能漏；设 0 就是以前的样子。'},
   {k:'ASSOC',title:'联想召回最多带几条',scale:1,fmt:v=>v<=0?'关闭':v+' 条',desc:'搜完后顺带带出相关的几条（结果里以 ↳ 开头）。'},
   {k:'REWRITE',title:'查询改写',bool:true,desc:'搜索前让语言模型把问题改写成几个短查询（要先配好语言模型，最多多等 4 秒）。'},
   {k:'NOWHEAD',title:'结果开头带「现在」的日期时间',bool:true,desc:'角色靠它知道现在几点、今天几号。'},
@@ -1590,10 +1765,10 @@ async function importText(text){
   catch(e){toast(e.message,true);}
 }
 function wipe(){
-  dialog('清除本机数据？',h('p',{class:'txt'},'会清掉这台设备上保存的地址、Token 和缓存。云端的记忆不受影响。'),[
+  dialog('清除本机数据？',h('p',{class:'txt'},'会清掉这台设备上保存的地址、Token 和缓存。云端的记忆不受影响。'+((Q.length||FQ.length)?'\n\n⚠️ 还有 '+(Q.length+FQ.length)+' 条离线修改没同步成功，清除后这些修改会丢掉。':'')),[
     {label:'取消',fn:c=>c()},
     {label:'清除',danger:true,fn:c=>{
-      ['url','tok','cache'].forEach(ls.del);
+      ['url','tok','cache','offq','offfail'].forEach(ls.del);
       c();location.reload();   // 直接重载，服务商 / 方案 / 提醒等表单和内存状态一次清干净
     }}
   ]).foot.firstChild.focus();
@@ -1696,7 +1871,7 @@ $('impfile').onchange=async e=>{
 $('impgo').onclick=()=>{const t=$('paste').value.trim();if(!t){toast('先粘贴 JSON',true);return;}importText(t);};
 $('wipe').onclick=wipe;$('reidx').onclick=reindex;$('dupgo').onclick=findDups;$('purge').onclick=purge;
 $('remsave').onclick=()=>saveRem();$('remtest').onclick=e=>remCall('/api/rem_test',e.currentTarget);$('remrun').onclick=e=>remCall('/api/rem_run',e.currentTarget);$('rembarkclr').onclick=()=>saveRem('bark');$('remtgclr').onclick=()=>saveRem('tg');
-$('pendgo').onclick=loadPend;$('consgo').onclick=consGo;$('redogo').onclick=()=>redoGo(true);$('maint').onclick=maintNow;['cfgrev','cfgpurge','cfgcons','cfgcap','cfgevict','cfgrecall'].forEach(id=>{$(id).onchange=()=>saveCfg(id);});
+$('pendgo').onclick=loadPend;$('chatview').onclick=chatView;$('chatclr').onclick=chatClear;$('consgo').onclick=consGo;$('redogo').onclick=()=>redoGo(true);$('maint').onclick=maintNow;['cfgrev','cfglow','cfgchat','cfgpurge','cfgcons','cfgcap','cfgevict','cfgrecall'].forEach(id=>{$(id).onchange=()=>saveCfg(id);});
 document.querySelectorAll('.keyeye').forEach(b=>b.onclick=()=>{ls.set('keyvis',ls.get('keyvis')==='1'?'0':'1');applyKeyVis();});applyKeyVis();
 ['llm','emb'].forEach(k=>{$(k+'-pre').onclick=()=>presSave(k);$(k+'-fetch').onclick=()=>provFetch(k);$(k+'-save').onclick=()=>provSave(k);$(k+'-reset').onclick=()=>provReset(k);$(k+'-pick').onchange=e=>{if(e.target.value)$(k+'-m').value=e.target.value;};});
 $('ingdry').onclick=ingDry;$('inglog').onclick=ingLog;$('sumload').onclick=sumLoad;$('sumgen').onclick=sumGen;$('sumsave').onclick=sumSave;
@@ -1715,6 +1890,11 @@ setTimeout(()=>checkUpdate(false,true),1500);
   if(tab==='set'&&configured())loadTune();
   refresh(false);
 })();
+window.addEventListener('online',()=>{if(configured())refresh(false,true);});   // v6.0：恢复联网就同步
+window.addEventListener('offline',()=>renderStat());
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){   // v6.0：sw.js 放在网页旁边；没放也没关系，只是没网时打不开页面
+  navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{fetch(location.href,{cache:'reload'}).catch(()=>{});}).catch(()=>{});
+}
 </script>
 </body>
 </html>
