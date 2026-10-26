@@ -309,10 +309,11 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
         <p class="hint" style="margin-top:4px">「显示」只是让你看清自己刚输入的 Key；已保存的 Key 不会从服务器传回来，只显示末 4 位。</p>
         <label class="lbl" for="emb-m">模型名</label>
         <input class="field" id="emb-m" type="text" placeholder="手填，或先点「拉取模型列表」再选" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">
+        <input class="field" id="emb-q" type="search" placeholder="搜索模型（空格隔开多个词，回车选第一个）" aria-label="搜索拉取到的模型" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" style="margin-top:8px" hidden>
         <select class="field" id="emb-pick" aria-label="从拉取到的列表里选模型" style="margin-top:8px;width:100%" hidden></select>
         <label class="lbl" for="emb-n">备注（可选，不填就自动显示模型名）</label>
         <input class="field" id="emb-n" type="text" maxlength="30" placeholder="比如：便宜的、写作用的" autocomplete="off">
-        <div class="btns"><button class="btn" id="emb-fetch">拉取模型列表</button><button class="btn primary" id="emb-save">保存</button><button class="btn" id="emb-pre">存为方案</button><button class="btn" id="emb-reset">恢复默认</button></div>
+        <div class="btns"><button class="btn" id="emb-test">测试连接</button><button class="btn" id="emb-fetch">拉取模型列表</button><button class="btn primary" id="emb-save">保存</button><button class="btn" id="emb-pre">存为方案</button><button class="btn" id="emb-reset">恢复默认</button></div>
         <div class="pres" id="emb-pres"></div>
         <p class="hint" id="emb-msg">自己的向量接口（可选）：OpenAI 格式的 /embeddings。不填就用 Workers AI 或环境变量。换了接口或模型后，要点一次下面的「重建语义索引」。</p>
         <div class="btns"><button class="btn" id="reidx">重建语义索引</button></div>
@@ -329,10 +330,11 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
         <p class="hint" style="margin-top:4px">「显示」只是让你看清自己刚输入的 Key；已保存的 Key 不会从服务器传回来，只显示末 4 位。</p>
         <label class="lbl" for="llm-m">模型名</label>
         <input class="field" id="llm-m" type="text" placeholder="手填，或先点「拉取模型列表」再选" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">
+        <input class="field" id="llm-q" type="search" placeholder="搜索模型（空格隔开多个词，回车选第一个）" aria-label="搜索拉取到的模型" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" style="margin-top:8px" hidden>
         <select class="field" id="llm-pick" aria-label="从拉取到的列表里选模型" style="margin-top:8px;width:100%" hidden></select>
         <label class="lbl" for="llm-n">备注（可选，不填就自动显示模型名）</label>
         <input class="field" id="llm-n" type="text" maxlength="30" placeholder="比如：便宜的、写作用的" autocomplete="off">
-        <div class="btns"><button class="btn" id="llm-fetch">拉取模型列表</button><button class="btn primary" id="llm-save">保存</button><button class="btn" id="llm-pre">存为方案</button><button class="btn" id="llm-reset">恢复默认</button></div>
+        <div class="btns"><button class="btn" id="llm-test">测试连接</button><button class="btn" id="llm-fetch">拉取模型列表</button><button class="btn primary" id="llm-save">保存</button><button class="btn" id="llm-pre">存为方案</button><button class="btn" id="llm-reset">恢复默认</button></div>
         <div class="pres" id="llm-pres"></div>
         <p class="hint" id="llm-msg">用来自动提炼对话、改写搜索词、写关系摘要。地址填到 /v1 即可，需要 OpenAI 格式的 /chat/completions。这里保存的优先于 Worker 环境变量；点「恢复默认」就改回用环境变量。搜索词改写可以在「搜索与回顾调节」里单独开关。</p>
       </div></fieldset>
@@ -343,7 +345,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
         <textarea class="field" id="ingt" rows="5" placeholder="用户：……&#10;角色：……" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
         <label class="lbl" for="inga">角色（可空）</label>
         <input class="field" id="inga" type="text" list="sumdl" placeholder="留空＝不指定角色" autocapitalize="off" autocorrect="off" spellcheck="false">
-        <div class="btns"><button class="btn primary" id="ingdry">试提炼</button><button class="btn" id="inglog">提炼记录</button></div>
+        <div class="btns"><button class="btn primary" id="ingdry">试提炼</button><button class="btn" id="inglog">提炼记录</button><button class="btn" id="inglive" aria-pressed="true">自动刷新：开</button></div>
         <p class="hint" id="ingmsg">先看模型会提炼出什么，勾选后再保存，不会直接写进去。小手机「自动储存原文对话」发来的内容会自动提炼并保存，结果在「提炼记录」里（会显示收到的原文开头，方便检查说话人有没有标对）。</p>
         <div id="ingout"></div>
       </div></fieldset>
@@ -517,7 +519,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 
 <script>
 'use strict';
-const APP_VERSION='v8.8';
+const APP_VERSION='v8.9';
 /* 禁止双击放大（iOS 对 touch-action 不总是认）：两次点击间隔太短时拦掉第二次的默认缩放；按钮 / 输入框不拦，免得吞掉连点；双指捏合缩放不受影响 */
 (function(){let lt=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<350&&e.touches.length===0&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label,summary,[role=button],[role=checkbox],.selmode')))e.preventDefault();lt=n;},{passive:false});})();
 let CAP=1500;const MAXLEN=2000,PAGE=80;
@@ -926,17 +928,40 @@ function setProv(p){
     $(k+'-k').placeholder=v.k?('已设置'+(v.kt?'（…'+v.kt+'）':'')+'，留空＝不改'):'API Key（没有可留空）';
   });
 }
+const provList={llm:[],emb:[]};   // v8.9：拉取到的模型列表（搜索框在这上面过滤）
+function provFilter(kind,keep){
+  const sel=$(kind+'-pick'),q=$(kind+'-q'),all=provList[kind],ws=q.value.toLowerCase().split(/\s+/).filter(Boolean),cur=keep!==undefined?keep:sel.value;
+  const hit=ws.length?all.filter(x=>{const l=x.toLowerCase();return ws.every(w=>l.includes(w));}):all;
+  sel.textContent='';
+  sel.append(h('option',{value:''},hit.length?(ws.length?'匹配 '+hit.length+' 个（共 '+all.length+' 个），选一个…':'选一个模型（共 '+all.length+' 个）…'):'没有匹配「'+q.value.trim()+'」的模型'),...hit.map(x=>h('option',{value:x},x)));
+  sel.value=hit.includes(cur)?cur:'';
+  return hit;
+}
 async function provFetch(kind){
-  const b=$(kind+'-fetch'),msg=$(kind+'-msg'),sel=$(kind+'-pick'),u=$(kind+'-u').value.trim();
+  const b=$(kind+'-fetch'),msg=$(kind+'-msg'),sel=$(kind+'-pick'),q=$(kind+'-q'),u=$(kind+'-u').value.trim();
   if(!u){msg.textContent='先填服务商地址。';return;}
   b.disabled=true;msg.textContent='拉取中…';
   try{
     const j=await api('/api/models',{kind,u,k:$(kind+'-k').value.trim()},30000),ms=j.models||[],cur=$(kind+'-m').value.trim();
-    sel.textContent='';
-    sel.append(h('option',{value:''},'选一个模型（共 '+ms.length+' 个）…'),...ms.map(x=>h('option',{value:x},x)));
-    sel.value=ms.includes(cur)?cur:'';sel.hidden=false;
-    msg.textContent=(j.message||'拉取完成')+'，在上面的下拉里选一个，再点「保存」。';
+    provList[kind]=ms;q.value='';
+    provFilter(kind,ms.includes(cur)?cur:'');
+    sel.hidden=false;q.hidden=ms.length<8;   // 只有几个模型时不用搜索
+    msg.textContent=(j.message||'拉取完成')+(q.hidden?'':'，可在上面搜索')+'，在下拉里选一个，再点「保存」。';
   }catch(e){msg.textContent=e.message;toast(e.message,true);}
+  finally{b.disabled=false;}
+}
+function provQ(kind,enter){
+  const hit=provFilter(kind);
+  if(enter&&hit.length){$(kind+'-m').value=hit[0];$(kind+'-pick').value=hit[0];$(kind+'-msg').textContent='已选 '+hit[0]+'（还没保存），确认后点「保存」。';}
+  else if(enter)toast('没有匹配的模型',true);
+}
+async function provTest(kind){   // v8.9：测试连接：用现在填的地址 / Key / 模型名真发一次最小请求，不保存；都留空＝测现在生效的
+  const b=$(kind+'-test'),msg=$(kind+'-msg');
+  b.disabled=true;msg.textContent='测试中…（最多约 25 秒，不会保存任何东西）';
+  try{
+    const r=await api('/api/prov_test',{kind,u:$(kind+'-u').value.trim(),k:$(kind+'-k').value.trim(),m:$(kind+'-m').value.trim()},40000);
+    msg.textContent='✅ '+(r.message||'连接正常');toast('连接正常');reveal(msg);
+  }catch(e){msg.textContent='❌ 连接失败：'+e.message;toast('连接失败：'+e.message,true);reveal(msg);}
   finally{b.disabled=false;}
 }
 async function provSave(kind){
@@ -955,7 +980,7 @@ function provReset(kind){
     {label:'恢复',danger:true,fn:async c=>{
       try{
         const r=await api('/api/prov',{kind,clear:true});
-        c();provSeen[kind]='';$(kind+'-pick').hidden=true;$(kind+'-msg').textContent=r.message||'已恢复';toast('已恢复默认');reload();
+        c();provSeen[kind]='';$(kind+'-pick').hidden=true;$(kind+'-q').hidden=true;provList[kind]=[];$(kind+'-msg').textContent=r.message||'已恢复';toast('已恢复默认');reload();
       }catch(e){toast(e.message,true);}
     }}
   ]);
@@ -1112,7 +1137,7 @@ function dropAllPend(bats){
 async function ingDry(){
   const t=$('ingt').value.trim(),ac=$('inga').value.trim(),msg=$('ingmsg'),box=$('ingout'),b=$('ingdry');
   if(!t){toast('先粘贴一段对话',true);return;}
-  b.disabled=true;msg.textContent='提炼中…（最多约 25 秒）';box.textContent='';
+  b.disabled=true;msg.textContent='提炼中…（最多约 25 秒）';box.textContent='';ingMode='';
   try{
     const j=await api('/api/ingest',{text:t,actor:ac,dry:true},60000),ops=(j.ops||[]).filter(o=>o&&o.op);
     msg.textContent=j.message||'完成';reveal(msg);
@@ -1136,17 +1161,33 @@ function chatClear(){
     {label:'清空',danger:true,fn:async c=>{try{const r=await api('/api/chat_clear',{all:true});c();$('chatout').textContent='';$('chatmsg').textContent=r.message||'已清空';toast(r.message||'已清空');}catch(e){toast(e.message,true);}}}
   ]).foot.firstChild.focus();
 }
-async function ingLog(){
-  const msg=$('ingmsg'),box=$('ingout');box.textContent='';msg.textContent='读取中…';
+/* v8.9：提炼记录自动刷新。点过「提炼记录」后，这一页开着、设置里「提炼对话」展开着时，每 8 秒悄悄拉一次，有新的才重画（新的在上；你正在往下看时，页面会补偿高度，不会被顶走）。试提炼 / 草稿试提炼出结果后就不再刷，免得盖掉你正在勾选的内容。 */
+let ingMode='',ingSig='',ingBusy=false;   // ingMode＝'log' 时，「提炼对话」下方的结果区显示的是提炼记录
+const ingLive=()=>ls.get('inglive')!=='0';
+function ingLiveBtn(){const b=$('inglive'),on=ingLive();b.textContent='自动刷新：'+(on?'开':'关');b.setAttribute('aria-pressed',on?'true':'false');}
+async function ingLog(auto){
+  const msg=$('ingmsg'),box=$('ingout'),bg=auto===true;
+  if(bg){if(ingBusy)return;}else{box.textContent='';msg.textContent='读取中…';ingSig='';ingMode='';}
+  ingBusy=true;
   try{
-    const lg=(await api('/api/inglog',{})).log||[];
-    msg.textContent=lg.length?'最近 '+lg.length+' 次提炼（新的在上）。提炼出的记忆在「记忆」页带 🤖，可以筛选出来检查。':'还没有提炼记录。';
+    const lg=(await api('/api/inglog',{})).log||[],sig=JSON.stringify(lg);
+    if(bg&&(ingMode!=='log'||sig===ingSig))return;   // 等回包的时候你已经去试提炼了 / 没有新的：不动页面
+    const top0=box.getBoundingClientRect().top,h0=box.offsetHeight;
+    box.textContent='';ingSig=sig;ingMode='log';
+    msg.textContent=lg.length?'最近 '+lg.length+' 次提炼（新的在上）。提炼出的记忆在「记忆」页带 🤖，可以筛选出来检查。'+(ingLive()?'自动刷新已开：有新的提炼结果会自己出现（'+fmtTime(Date.now())+' 更新）。':''):'还没有提炼记录。'+(ingLive()?'自动刷新已开，有新的会自己出现。':'');
     lg.forEach(x=>box.append(h('div',{class:'grp dupg'},
       h('p',{class:'hint',style:'margin:0'},fmtTime(x.t)+(x.a?' · 〔'+x.a+'〕':'')+(x.manual?' · 手动保存':'')+(x.q?' · 已转待审':'')+(x.err?'':' · 新增 '+(x.add||0)+'，更新 '+(x.upd||0)+(x.mrg?'，合并 '+x.mrg:'')+'，过时 '+(x.stale||0)+'，跳过 '+(x.skip||0))),
       x.err?h('p',{class:'txt warn'},'出错：'+x.err):null,
       x.raw?h('p',{class:'hint',style:'margin:2px 0;word-break:break-all'},'收到的原文开头（已标好谁是谁）：'+x.raw):null,
       (x.ops||[]).map(o=>h('p',{class:'txt'},o)))));
-  }catch(e){msg.textContent=e.message;}
+    if(bg&&top0<0){const d=box.offsetHeight-h0;if(d)scrollBy(0,d);}   // 你正在记录里面往下看：新的插在上面，把页面往下补同样的高度
+  }catch(e){if(!bg)msg.textContent=e.message;}   // 后台刷新失败就算了，下一轮再试
+  finally{ingBusy=false;}
+}
+function ingTick(){
+  if(!ingLive()||ingMode!=='log'||document.hidden||tab!=='set'||!configured())return;
+  const g=document.querySelector('[data-g=ing] .lg');if(!g||g.getAttribute('aria-expanded')!=='true')return;
+  ingLog(true);
 }
 function fillActors(){
   const dl=$('sumdl');
@@ -1727,7 +1768,7 @@ async function pmTry(){
   if(!psys){toast('提示词不能为空',true);return;}
   const gl=document.querySelector('[data-g=ing] .lg');if(gl.getAttribute('aria-expanded')!=='true')gl.click();   // 结果显示在「提炼对话」下面，收起着的话先展开
   if(!t){toast('先到「提炼对话」里粘贴一段对话',true);$('ingt').focus();return;}
-  b.disabled=true;msg.textContent='用这份草稿试提炼中…（最多约 25 秒，不会保存任何东西）';box.textContent='';
+  b.disabled=true;msg.textContent='用这份草稿试提炼中…（最多约 25 秒，不会保存任何东西）';box.textContent='';ingMode='';
   try{
     const j=await api('/api/ingest',{text:t,actor:ac,dry:true,psys},60000),ops=(j.ops||[]).filter(o=>o&&o.op);
     msg.textContent='草稿试提炼：'+(j.message||'完成')+(ops.length?'。结果显示在上面「提炼对话」下方，勾选保存的话是真的会入库。':'');$('ingmsg').textContent=msg.textContent;
@@ -2199,10 +2240,11 @@ $('wipe').onclick=wipe;$('reidx').onclick=reindex;$('dupgo').onclick=findDups;$(
 $('remsave').onclick=()=>saveRem();$('remtest').onclick=e=>remCall('/api/rem_test',e.currentTarget);$('remrun').onclick=e=>remCall('/api/rem_run',e.currentTarget);$('rembarkclr').onclick=()=>saveRem('bark');$('remtgclr').onclick=()=>saveRem('tg');
 $('pendgo').onclick=loadPend;$('chatview').onclick=chatView;$('chatq').addEventListener('keydown',e=>{if(isEnter(e)){e.preventDefault();chatView();}});$('chatclr').onclick=chatClear;$('consgo').onclick=consGo;$('redogo').onclick=()=>redoGo(true);$('maint').onclick=maintNow;['cfgrev','cfglow','cfgchat','cfgfup','cfgpurge','cfgcons','cfgcap','cfguname','cfgevict','cfgrecall'].forEach(id=>{$(id).onchange=()=>saveCfg(id);});
 document.querySelectorAll('.keyeye').forEach(b=>b.onclick=()=>{ls.set('keyvis',ls.get('keyvis')==='1'?'0':'1');applyKeyVis();});applyKeyVis();
-['llm','emb'].forEach(k=>{$(k+'-pre').onclick=()=>presSave(k);$(k+'-fetch').onclick=()=>provFetch(k);$(k+'-save').onclick=()=>provSave(k);$(k+'-reset').onclick=()=>provReset(k);$(k+'-pick').onchange=e=>{if(e.target.value)$(k+'-m').value=e.target.value;};});
-$('ingdry').onclick=ingDry;$('inglog').onclick=ingLog;$('sumload').onclick=sumLoad;$('sumgen').onclick=sumGen;$('sumsave').onclick=sumSave;
-document.addEventListener('visibilitychange',()=>{if(document.hidden)return;if(configured()&&Date.now()-lastSync>30000)refresh(false);if(Date.now()-lastUpd>60000)checkUpdate(false,false);});
+['llm','emb'].forEach(k=>{$(k+'-pre').onclick=()=>presSave(k);$(k+'-fetch').onclick=()=>provFetch(k);$(k+'-test').onclick=()=>provTest(k);$(k+'-q').addEventListener('input',()=>provQ(k,false));$(k+'-q').addEventListener('keydown',e=>{if(isEnter(e)){e.preventDefault();provQ(k,true);}});$(k+'-save').onclick=()=>provSave(k);$(k+'-reset').onclick=()=>provReset(k);$(k+'-pick').onchange=e=>{if(e.target.value)$(k+'-m').value=e.target.value;};});
+$('ingdry').onclick=ingDry;$('inglog').onclick=()=>ingLog();$('inglive').onclick=()=>{ls.set('inglive',ingLive()?'0':'1');ingLiveBtn();if(ingLive())ingTick();else if(ingMode==='log'){ingSig='';ingLog();}};ingLiveBtn();$('sumload').onclick=sumLoad;$('sumgen').onclick=sumGen;$('sumsave').onclick=sumSave;
+document.addEventListener('visibilitychange',()=>{if(document.hidden)return;ingTick();if(configured()&&Date.now()-lastSync>30000)refresh(false);if(Date.now()-lastUpd>60000)checkUpdate(false,false);});
 setInterval(()=>{if(!document.hidden&&Date.now()-lastUpd>600000)checkUpdate(false,false);},60000);
+setInterval(ingTick,8000);   // v8.9：提炼记录自动刷新
 setTimeout(()=>checkUpdate(false,true),1500);
 
 (function boot(){
