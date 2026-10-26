@@ -339,6 +339,14 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
         <p class="hint" id="llm-msg">用来自动提炼对话、改写搜索词、写关系摘要。地址填到 /v1 即可，需要 OpenAI 格式的 /chat/completions。这里保存的优先于 Worker 环境变量；点「恢复默认」就改回用环境变量。搜索词改写可以在「搜索与回顾调节」里单独开关。</p>
       </div></fieldset>
 
+      <fieldset class="grp" data-g="idn">
+        <legend><button type="button" class="lg" aria-expanded="true">角色名 / 用户名对照</button></legend><div class="gb">
+        <p class="hint" style="margin:0 0 8px">小手机有时只传编号（userId / characterId）、不传名字，Worker 就认不出谁是谁。小手机推送一次之后，见到的新编号会列在下面，给它们起名字、点「保存对照」就行：以后这个角色编号的记忆、搜索都按这个角色名走，对话里也会标成【用户】【角色名】。</p>
+        <div id="idnbox"></div>
+        <div class="btns"><button class="btn primary" id="idnsave">保存对照</button></div>
+        <p class="hint" id="idnmsg">名字留空＝不对应。角色名最多 30 字，用户名最多 20 字。</p>
+      </div></fieldset>
+
       <fieldset class="grp" data-g="ing">
         <legend><button type="button" class="lg" aria-expanded="true">提炼对话</button></legend><div class="gb">
         <label class="lbl" for="ingt">粘贴一段对话</label>
@@ -519,7 +527,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 
 <script>
 'use strict';
-const APP_VERSION='v9.0';
+const APP_VERSION='v9.1';
 /* 禁止双击放大（iOS 对 touch-action 不总是认）：两次点击间隔太短时拦掉第二次的默认缩放；按钮 / 输入框不拦，免得吞掉连点；双指捏合缩放不受影响 */
 (function(){let lt=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<350&&e.touches.length===0&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label,summary,[role=button],[role=checkbox],.selmode')))e.preventDefault();lt=n;},{passive:false});})();
 let CAP=1500;const MAXLEN=2000,PAGE=80;
@@ -873,6 +881,32 @@ function setCfg(c,force){
   const rs=$('cfgrecall'),rv=String(c.recall==null?30:c.recall);if(![...rs.options].some(o=>o.value===rv))rs.append(h('option',{value:rv},rv+' 天没提起'));rs.value=rv;
   const cp=$('cfgcap');if(force||document.activeElement!==cp){cp.value=c.cap>0?c.cap:'';cp.placeholder=String(CAP);}
   const un=$('cfguname');if(force||document.activeElement!==un)un.value=c.uname||'';
+  setIdn(c,force);
+}
+/* v9.1：角色名 / 用户名对照：小手机只传 userId / characterId 时，在这里给编号起名字 */
+let idnSig='';
+const own=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
+function setIdn(c,force){
+  const idn=c.idn||{c:{},u:{}},ids=c.ids||{c:[],u:[]},sig=JSON.stringify([idn,ids]),box=$('idnbox');
+  if(sig===idnSig)return;
+  if(!force&&document.activeElement&&document.activeElement.classList&&document.activeElement.classList.contains('idn-in'))return;   // 正在打字时不重画
+  idnSig=sig;box.textContent='';
+  [['c','角色'],['u','用户']].forEach(([t,nm])=>{
+    const all=[...Object.keys(idn[t]||{}),...(ids[t]||[]).filter(i=>!own(idn[t]||{},i))];
+    box.append(h('div',{class:'lbl'},nm+'编号（'+all.length+'）'));
+    if(!all.length)box.append(h('p',{class:'hint'},'还没见到'+nm+'编号。小手机推送一次对话后会出现在这里。'));
+    all.forEach(id=>box.append(h('div',null,
+      h('p',{class:'hint',style:'margin:6px 0 2px;word-break:break-all'},'编号：'+id),
+      h('input',{class:'field idn-in','data-t':t,'data-id':id,type:'text',maxlength:t==='c'?'30':'20',value:own(idn[t]||{},id)?idn[t][id]:'',placeholder:nm+'名字（留空＝不对应）','aria-label':nm+'编号 '+id+' 的名字',autocapitalize:'off',autocorrect:'off',spellcheck:'false',autocomplete:'off'}))));
+  });
+}
+async function idnSave(){
+  const b=$('idnsave'),msg=$('idnmsg'),idn={c:{},u:{}};
+  document.querySelectorAll('#idnbox .idn-in').forEach(i=>{const v=i.value.trim();if(v)idn[i.getAttribute('data-t')][i.getAttribute('data-id')]=v;});
+  b.disabled=true;msg.textContent='保存中…';
+  try{const r=await api('/api/cfg',{idn});setCfg(r,true);msg.textContent='已保存。下一次推送开始按这些名字认。';toast('已保存');}
+  catch(e){msg.textContent=e.message;toast(e.message,true);}
+  finally{b.disabled=false;}
 }
 function setRem(r){
   if(!r)return;
@@ -2242,7 +2276,7 @@ $('remsave').onclick=()=>saveRem();$('remtest').onclick=e=>remCall('/api/rem_tes
 $('pendgo').onclick=loadPend;$('chatview').onclick=chatView;$('chatq').addEventListener('keydown',e=>{if(isEnter(e)){e.preventDefault();chatView();}});$('chatclr').onclick=chatClear;$('consgo').onclick=consGo;$('redogo').onclick=()=>redoGo(true);$('maint').onclick=maintNow;['cfgrev','cfglow','cfgchat','cfgfup','cfgpurge','cfgcons','cfgcap','cfguname','cfgevict','cfgrecall'].forEach(id=>{$(id).onchange=()=>saveCfg(id);});
 document.querySelectorAll('.keyeye').forEach(b=>b.onclick=()=>{ls.set('keyvis',ls.get('keyvis')==='1'?'0':'1');applyKeyVis();});applyKeyVis();
 ['llm','emb'].forEach(k=>{$(k+'-pre').onclick=()=>presSave(k);$(k+'-fetch').onclick=()=>provFetch(k);$(k+'-test').onclick=()=>provTest(k);$(k+'-q').addEventListener('input',()=>provQ(k,false));$(k+'-q').addEventListener('keydown',e=>{if(isEnter(e)){e.preventDefault();provQ(k,true);}});$(k+'-save').onclick=()=>provSave(k);$(k+'-reset').onclick=()=>provReset(k);$(k+'-pick').onchange=e=>{if(e.target.value)$(k+'-m').value=e.target.value;};});
-$('ingdry').onclick=ingDry;$('inglog').onclick=()=>ingLog();$('inglive').onclick=()=>{ls.set('inglive',ingLive()?'0':'1');ingLiveBtn();if(ingLive())ingTick();else if(ingMode==='log'){ingSig='';ingLog();}};ingLiveBtn();$('sumload').onclick=sumLoad;$('sumgen').onclick=sumGen;$('sumsave').onclick=sumSave;
+$('idnsave').onclick=idnSave;$('ingdry').onclick=ingDry;$('inglog').onclick=()=>ingLog();$('inglive').onclick=()=>{ls.set('inglive',ingLive()?'0':'1');ingLiveBtn();if(ingLive())ingTick();else if(ingMode==='log'){ingSig='';ingLog();}};ingLiveBtn();$('sumload').onclick=sumLoad;$('sumgen').onclick=sumGen;$('sumsave').onclick=sumSave;
 document.addEventListener('visibilitychange',()=>{if(document.hidden)return;ingTick();if(configured()&&Date.now()-lastSync>30000)refresh(false);if(Date.now()-lastUpd>60000)checkUpdate(false,false);});
 setInterval(()=>{if(!document.hidden&&Date.now()-lastUpd>600000)checkUpdate(false,false);},60000);
 setInterval(ingTick,8000);   // v8.9：提炼记录自动刷新
