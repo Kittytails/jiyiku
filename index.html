@@ -519,7 +519,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 
 <script>
 'use strict';
-const APP_VERSION='v8.9';
+const APP_VERSION='v9.0';
 /* 禁止双击放大（iOS 对 touch-action 不总是认）：两次点击间隔太短时拦掉第二次的默认缩放；按钮 / 输入框不拦，免得吞掉连点；双指捏合缩放不受影响 */
 (function(){let lt=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<350&&e.touches.length===0&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label,summary,[role=button],[role=checkbox],.selmode')))e.preventDefault();lt=n;},{passive:false});})();
 let CAP=1500;const MAXLEN=2000,PAGE=80;
@@ -1178,6 +1178,7 @@ async function ingLog(auto){
     lg.forEach(x=>box.append(h('div',{class:'grp dupg'},
       h('p',{class:'hint',style:'margin:0'},fmtTime(x.t)+(x.a?' · 〔'+x.a+'〕':'')+(x.manual?' · 手动保存':'')+(x.q?' · 已转待审':'')+(x.err?'':' · 新增 '+(x.add||0)+'，更新 '+(x.upd||0)+(x.mrg?'，合并 '+x.mrg:'')+'，过时 '+(x.stale||0)+'，跳过 '+(x.skip||0))),
       x.err?h('p',{class:'txt warn'},'出错：'+x.err):null,
+      x.args?[h('p',{class:'hint',style:'margin:2px 0'},'认出的角色名：'+(x.a||'（没认出）')+'　用户名：'+(x.u||'（没认出）')),h('p',{class:'hint',style:'margin:2px 0;word-break:break-all'},'小手机这次传来的参数：'+x.args)]:null,
       x.raw?h('p',{class:'hint',style:'margin:2px 0;word-break:break-all'},'收到的原文开头（已标好谁是谁）：'+x.raw):null,
       (x.ops||[]).map(o=>h('p',{class:'txt'},o)))));
     if(bg&&top0<0){const d=box.offsetHeight-h0;if(d)scrollBy(0,d);}   // 你正在记录里面往下看：新的插在上面，把页面往下补同样的高度
