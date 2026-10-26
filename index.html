@@ -100,7 +100,7 @@ select.field{width:auto;padding-right:28px;background:#fff url("data:image/svg+x
 .task .btn{flex:1;padding:0 4px}
 
 /* 对话框 & 提示 */
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;justify-content:center;align-items:flex-start;padding:max(env(safe-area-inset-top),20px) 12px 12px;overflow-y:auto;overscroll-behavior:contain;z-index:20}
+.ov{position:fixed;top:0;right:0;bottom:0;left:0;inset:0;background:rgba(0,0,0,.45);display:flex;justify-content:center;align-items:flex-start;padding:max(env(safe-area-inset-top),20px) 12px 12px;overflow-y:auto;overscroll-behavior:contain;z-index:20}
 .win{background:var(--face);width:100%;max-width:460px;margin-top:6vh;box-shadow:inset -1px -1px var(--lo),inset 1px 1px #dfdfdf,4px 4px 0 rgba(0,0,0,.4)}
 .win .title{padding:6px 8px}
 .win .bd{padding:12px}
@@ -195,7 +195,7 @@ button,label{-webkit-tap-highlight-color:transparent}
 .pend-tb{margin:0 0 4px}
 .view#v-tl{padding-bottom:8px}
 #tlbar{flex-wrap:wrap;overflow-x:visible;padding-top:8px}
-.tlsel{min-height:36px;flex:none;max-width:150px;padding:0 6px;font-size:14px;font-weight:700}
+.tlsel{min-height:36px;flex:none;max-width:150px;padding:0 6px;font-size:16px;font-weight:700}
 .calhd{display:flex;align-items:center;gap:6px;margin:0 8px 6px}
 .calhd .ct{flex:1;text-align:center;font-size:17px}
 .calhd .btn{min-width:44px;min-height:40px;padding:0 8px}
@@ -364,8 +364,18 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
         <label class="lbl" for="pmn">这套的名字</label>
         <input class="field" id="pmn" type="text" maxlength="30" placeholder="比如：更严格的提炼" autocapitalize="off" autocorrect="off" spellcheck="false">
         <div class="btns"><button class="btn primary" id="pmsave">保存并启用</button><button class="btn" id="pmnew">另存为新的</button></div>
-        <div class="btns"><button class="btn" id="pmdef">载入完整版文字</button><button class="btn" id="pmtry">用草稿试提炼</button><button class="btn" id="pmdel">删除这套</button></div>
+        <div class="btns"><button class="btn" id="pmdef">载入完整版文字</button><button class="btn" id="pmtry">用草稿试提炼</button><button class="btn" id="pmeval">用草稿跑评测集</button><button class="btn" id="pmdel">删除这套</button></div>
         <p class="hint" id="pmmsg">载入中…</p>
+      </div></fieldset>
+
+      <fieldset class="grp" data-g="evl">
+        <legend><button type="button" class="lg" aria-expanded="true">提炼评测集</button></legend><div class="gb">
+        <p class="hint">存几段真实对话，各配一份你认可的「该记什么」。改完提示词或换模型后点「跑分」，看漏记、误记、时间错、说话人错各多少，和上一次比。用例来源：上面「提炼对话」试提炼后，勾选你认可的、点「存为评测用例」（没勾的会预填成「不该记的」）；或点「新增用例」手写。跑分用的是和真实提炼同一套流程，但不看也不改记忆库。</p>
+        <div class="btns"><button class="btn primary" id="evrun">跑分</button><button class="btn" id="evadd">新增用例</button></div>
+        <div class="btns"><button class="btn" id="evexp">导出</button><button class="btn" id="evcpy">复制</button><button class="btn" id="evimp">导入</button></div>
+        <input type="file" id="evfile" accept=".json,application/json" hidden>
+        <p class="hint" id="evmsg">载入中…</p>
+        <div id="evout"></div>
       </div></fieldset>
 
       <fieldset class="grp" data-g="pend">
@@ -398,9 +408,12 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
         <label class="row" for="cfgcons"><input type="checkbox" id="cfgcons">定时合并零碎小事（建议先进待审）</label>
         <label class="lbl" for="cfgcap">记忆条数上限（≥100，没有上限，留空＝用默认 1500 或环境变量）</label>
         <input class="field" id="cfgcap" type="number" inputmode="numeric" min="0" step="100" placeholder="1500">
+        <label class="lbl" for="cfguname">用户的名字（小手机传来就自动记下；手填后小手机就顶不掉了，要换在这里改，清空＝恢复自动记；对话里这个名字开头的发言算「用户」说的）</label>
+        <input class="field" id="cfguname" maxlength="20" placeholder="自动识别">
         <label class="row" for="cfgevict"><input type="checkbox" id="cfgevict">满了自动清掉最没用的（先清已过期 / 已过时的，再清最久没用到的「小事」；置顶、普通、重要的不动）</label>
         <label class="row" for="cfgchat"><input type="checkbox" id="cfgchat">保存聊天原文（明文存在云端，只存不用，将来用来补记忆 / 核对来源；每个角色最多约 30 万字，满了删最旧的）</label>
-        <input class="field" id="chatq" placeholder="搜聊天原文：关键词，空格隔开，都要出现；留空看最新的">
+        <label class="row" for="cfgfup"><input type="checkbox" id="cfgfup">事后追问：事件日期已过 1～3 天的事（不含「小事」，事后又聊过的不算），小手机搜记忆时顺带提示一句「可以问问结果」，让角色自己在聊天里自然问一句；每件事每个角色只问一次，试搜不算</label>
+        <input class="field" id="chatq" aria-label="搜聊天原文" placeholder="搜聊天原文：关键词，空格隔开，都要出现；留空看最新的">
         <div class="btns"><button class="btn" id="chatview" type="button">看聊天原文</button><button class="btn danger" id="chatclr" type="button">清空聊天原文</button></div>
         <p class="hint" id="chatmsg"></p><div id="chatout"></div>
         <p class="hint">几千条以上建议用付费版 Worker（免费版 CPU 不够，搜索可能超时）。库超过约 3MB 会自动分片存储，不用管。</p>
@@ -438,7 +451,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
         <label class="lbl" for="suma">角色（留空＝共用）</label>
         <input class="field" id="suma" type="text" list="sumdl" placeholder="角色名" autocapitalize="off" autocorrect="off" spellcheck="false"><datalist id="sumdl"></datalist>
         <div class="btns"><button class="btn" id="sumload">查看</button><button class="btn primary" id="sumgen">生成 / 更新</button></div>
-        <textarea class="field" id="sumtxt" rows="6" maxlength="1200" placeholder="还没有摘要" style="margin-top:10px"></textarea>
+        <textarea class="field" id="sumtxt" aria-label="关系摘要内容" rows="6" maxlength="1200" placeholder="还没有摘要" style="margin-top:10px"></textarea>
         <div class="btns"><button class="btn" id="sumsave">保存修改</button></div>
         <p class="hint" id="summsg">摘要按【偏好】【事实】【近期的事】【和角色的关系】分段，会在每次搜索时自动带上。生成过一次之后，这个角色的记忆累计变动 10 条会自动重写；你手动改过的也会被覆盖，重要的内容请同时记成记忆。</p>
       </div></fieldset>
@@ -504,14 +517,14 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 
 <script>
 'use strict';
-const APP_VERSION='v7.6';
+const APP_VERSION='v8.8';
 /* 禁止双击放大（iOS 对 touch-action 不总是认）：两次点击间隔太短时拦掉第二次的默认缩放；按钮 / 输入框不拦，免得吞掉连点；双指捏合缩放不受影响 */
-(function(){let lt=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<350&&e.touches.length===0&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label,summary,[role=button]')))e.preventDefault();lt=n;},{passive:false});})();
+(function(){let lt=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<350&&e.touches.length===0&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label,summary,[role=button],[role=checkbox],.selmode')))e.preventDefault();lt=n;},{passive:false});})();
 let CAP=1500;const MAXLEN=2000,PAGE=80;
 const $=id=>document.getElementById(id);
 const ls={
   get(k){try{return localStorage.getItem('xsjmem.'+k);}catch(e){return null;}},
-  set(k,v){try{localStorage.setItem('xsjmem.'+k,v);}catch(e){}},
+  set(k,v){try{localStorage.setItem('xsjmem.'+k,v);return true;}catch(e){return false;}},
   del(k){try{localStorage.removeItem('xsjmem.'+k);}catch(e){}}
 };
 function h(tag,attrs,...kids){
@@ -565,8 +578,14 @@ async function mcpCall(name,args){
 /* ---------- v6.0：离线修改（没网时增删改先存在本机，联网后自动同步）---------- */
 const OFFQ=new Set(['/api/save','/api/update','/api/delete','/api/batch']);   // 只有这四个能离线做；设置、提炼、待审、整理这些还是要联网
 const loadJ=(k,d)=>{try{const v=JSON.parse(ls.get(k)||'null');return Array.isArray(v)?v:d;}catch(e){return d;}};
-let Q=loadJ('offq',[]),FQ=loadJ('offfail',[]),flushing=false,savedTmp=false,flushAuthErr=null;   // savedTmp＝这次同步里有离线新增的发出去了（本地的 tmp- 编号该换成正式的了）；flushAuthErr＝同步时 Token 被拒   // Q＝等着同步的；FQ＝服务端明确拒绝、要人来看的
-const saveQ=()=>{ls.set('offq',JSON.stringify(Q));ls.set('offfail',JSON.stringify(FQ));};
+let Q=loadJ('offq',[]),FQ=loadJ('offfail',[]),flushing=false,sending=null,savedTmp=false,flushAuthErr=null;   // savedTmp＝这次同步里有离线新增的发出去了（本地的 tmp- 编号该换成正式的了）；flushAuthErr＝同步时 Token 被拒   // Q＝等着同步的；FQ＝服务端明确拒绝、要人来看的
+let qWarned=false;
+const saveQ=()=>{   // 本机存储满了：先丢掉大头的列表缓存再试；队列还是存不下就明说（关页面会丢）
+  const a=JSON.stringify(Q),b=JSON.stringify(FQ);
+  if(ls.set('offq',a)&&ls.set('offfail',b))return;
+  ls.del('cache');
+  if(!(ls.set('offq',a)&&ls.set('offfail',b))&&!qWarned){qWarned=true;setTimeout(()=>toast('本机存储空间满了，离线修改没能存住，关掉页面会丢，请尽快联网同步',true),0);}
+};
 const isTmp=id=>String(id||'').startsWith('tmp-');   // 离线新增的记忆先用临时编号，同步后换成服务端的正式编号
 const splitTags=v=>(Array.isArray(v)?v:String(v==null?'':v).split(/[,，、]+/)).map(x=>String(x).trim()).filter(Boolean);
 const expTs=v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v||''))?Date.parse(v+'T23:59:59+08:00'):0;
@@ -624,11 +643,14 @@ async function pullItems(){   // 同步出去离线新增的之后，马上把�
 async function api(path,body,ms){
   if(!OFFQ.has(path))return apiRaw(path,body,ms);
   body=body||{};
+  const busyTmp=ids=>{if(sending&&sending.tmp&&ids.map(String).includes(sending.tmp))throw new Error('这条离线新增的记忆正在同步到服务端，几秒后再改');};
   if((path==='/api/update'||path==='/api/delete')&&isTmp(body.id)){
+    busyTmp([body.id]);
     if(tmpGone([body.id]))throw new Error('这条记忆刚同步到服务端，编号变了，请先点「刷新」再操作');
     tmpOp(path,body);saveQ();cacheSave();render();return {message:'已修改（这条还没同步，联网后一起同步）',queued:true};
   }
   if(path==='/api/batch'&&(body.ids||[]).some(isTmp)){
+    busyTmp(body.ids||[]);
     if(tmpGone((body.ids||[]).map(String)))throw new Error('选中的有记忆刚同步到服务端，编号变了，请先点「刷新」再操作');
     tmpOp(path,body);saveQ();cacheSave();
     const rest=(body.ids||[]).map(String).filter(x=>!isTmp(x));
@@ -653,20 +675,23 @@ async function flushQueue(){
   try{
     while(Q.length){
       const e=Q[0];let r;
+      const drop=()=>{const i=Q.indexOf(e);if(i>=0)Q.splice(i,1);};   // 发送期间 Q 可能被换成新数组（删离线新增会重建），按对象找回这一条，别误删下一条
+      sending=e;
       try{r=await apiRaw(e.path,e.body,60000);}
       catch(err){
+        sending=null;
         if(err.net||err.timeout)return;   // 没网 / 超时：留着，下次再发
         if(/^Token 不对/.test(err.message)){flushAuthErr=err;return;}   // Token 不对：留着，并让调用的人知道
-        Q.shift();
+        drop();
         if(e.path!=='/api/save'&&/找不到/.test(err.message)){saveQ();continue;}   // 要改 / 删的那条别处已经没了：当作同步完成
         FQ.push({...e,err:err.message});saveQ();continue;
       }
-      Q.shift();
+      sending=null;drop();
       if(e.path==='/api/save'){if(/^没有保存/.test(r.message||''))FQ.push({...e,err:r.message});else savedTmp=true;}   // 服务端说有相近 / 矛盾的：要人来决定
       saveQ();
     }
   }finally{
-    flushing=false;saveQ();
+    flushing=false;sending=null;saveQ();
     if(FQ.length>bad0){toast((FQ.length-bad0)+' 条离线修改没能同步，点底部状态栏的「查看」处理',true);}
     renderStat();
   }
@@ -708,7 +733,7 @@ function normItem(m){
   const upd=Number(m.upd)||Number(m.ts)||0;
   return {id:String(m.id),content:String(m.content||''),tags:Array.isArray(m.tags)?m.tags.map(String):[],ts:Number(m.ts)||upd,upd,pin:!!m.pin,actor:String(m.actor||''),imp:m.imp!=null&&m.imp!==''&&[0,1,2].includes(Number(m.imp))?Number(m.imp):1,cat:String(m.cat||''),exp:Number(m.exp)||0,evt:/^\d{4}-\d{2}-\d{2}$/.test(m.evt||'')?m.evt:'',evh:/^\d{4}-\d{2}-\d{2}$/.test(m.evt||'')&&/^\d{2}:\d{2}(:\d{2})?$/.test(m.evh||'')?m.evh:'',stale:!!m.stale,src:m.src==='auto'?'auto':'',fr:String(m.fr||'').slice(0,300),sat:Number(m.sat)||0,hit:Math.max(0,Number(m.hit)||0),lh:Number(m.lh)||0};
 }
-const cacheSave=()=>ls.set('cache',JSON.stringify(items));
+const cacheSave=()=>{if(!ls.set('cache',JSON.stringify(items)))ls.del('cache');};   // 写不下就不留缓存，别留半截旧的
 const isOld=m=>m.stale||(m.exp>0&&m.exp<Date.now());
 const fmtTime=ts=>bj(ts);   // 精确到秒，北京时间
 const todayBJ=()=>bj(Date.now()).slice(0,10);
@@ -842,9 +867,10 @@ function setCfg(c,force){
   if(!c)return;
   const sel=$('cfgpurge'),pv=String(c.purge||0);
   if(![...sel.options].some(o=>o.value===pv))sel.append(h('option',{value:pv},'放满 '+pv+' 天后清理'));
-  $('cfgrev').checked=!!c.review;$('cfgchat').checked=!!c.chatlog;$('cfglow').checked=c.lowrev!==false;sel.value=pv;$('cfgcons').checked=!!c.cons;$('cfgevict').checked=!!c.evict;
+  $('cfgrev').checked=!!c.review;$('cfgchat').checked=!!c.chatlog;$('cfgfup').checked=c.followup!==false;$('cfglow').checked=c.lowrev!==false;sel.value=pv;$('cfgcons').checked=!!c.cons;$('cfgevict').checked=!!c.evict;
   const rs=$('cfgrecall'),rv=String(c.recall==null?30:c.recall);if(![...rs.options].some(o=>o.value===rv))rs.append(h('option',{value:rv},rv+' 天没提起'));rs.value=rv;
   const cp=$('cfgcap');if(force||document.activeElement!==cp){cp.value=c.cap>0?c.cap:'';cp.placeholder=String(CAP);}
+  const un=$('cfguname');if(force||document.activeElement!==un)un.value=c.uname||'';
 }
 function setRem(r){
   if(!r)return;
@@ -869,13 +895,13 @@ async function remCall(path,btn){
   catch(e){toast(e.message,true);}
   finally{btn.disabled=false;}
 }
-const CFGKEY={cfgrev:'review',cfglow:'lowrev',cfgchat:'chatlog',cfgpurge:'purge',cfgcons:'cons',cfgcap:'cap',cfgevict:'evict',cfgrecall:'recall'};
+const CFGKEY={cfgrev:'review',cfglow:'lowrev',cfgchat:'chatlog',cfgfup:'followup',cfgpurge:'purge',cfgcons:'cons',cfgcap:'cap',cfguname:'uname',cfgevict:'evict',cfgrecall:'recall'};
 async function saveCfg(id){
   // 只发被改的那一项：控件在首次同步回来前还是 HTML 默认值，全发会把别的设置写回默认
   const el=$(id),k=CFGKEY[id];if(!el||!k)return;
   if(!loaded){toast('还没同步到设置，请稍后再改',true);reload();return;}
   const want=id==='cfgcap'?(Number(el.value)||0):0,body={};
-  body[k]=el.type==='checkbox'?el.checked:(Number(el.value)||0);
+  body[k]=el.type==='checkbox'?el.checked:id==='cfguname'?el.value.trim():(Number(el.value)||0);
   try{setCfg(await api('/api/cfg',body),true);await reload();toast(id==='cfgcap'&&want>0&&want<100?'条数上限最低 100，已按 100 保存':'已保存');}
   catch(e){toast(e.message,true);reload();}
 }
@@ -989,7 +1015,7 @@ function opText(o){
   if(k==='merge')return '⊕ 合并 '+(Array.isArray(o.ids)?o.ids.length:0)+' 条 → '+o.content+(Array.isArray(o.olds)&&o.olds.length?'\n（原：'+o.olds.join(' / ')+'）':'');
   return '？'+JSON.stringify(o);
 }
-function opsBox(box,ops,save){
+function opsBox(box,ops,save,alt){
   const picks=ops.map(()=>true);
   ops.forEach((o,i)=>box.append(h('label',{class:'row opl'},h('input',{type:'checkbox',checked:true,onchange:e=>{picks[i]=e.target.checked;}}),h('span',{class:'txt'},opText(o)))));
   box.append(h('div',{class:'btns'},h('button',{class:'btn primary',onclick:async ev=>{
@@ -997,7 +1023,7 @@ function opsBox(box,ops,save){
     if(!sel.length){toast('没有勾选',true);return;}
     const btn=ev.currentTarget;btn.disabled=true;
     try{await save(sel);}catch(e){toast(e.message,true);btn.disabled=false;}
-  }},'保存勾选的')));
+  }},'保存勾选的'),alt?h('button',{class:'btn',onclick:()=>alt.fn(ops.filter((_,i)=>picks[i]),ops.filter((_,i)=>!picks[i]))},alt.label):null));
 }
 async function consGo(){
   const ac=$('consa').value.trim(),msg=$('consmsg'),box=$('consout'),b=$('consgo');
@@ -1091,7 +1117,7 @@ async function ingDry(){
     const j=await api('/api/ingest',{text:t,actor:ac,dry:true},60000),ops=(j.ops||[]).filter(o=>o&&o.op);
     msg.textContent=j.message||'完成';reveal(msg);
     if(!ops.length)return;
-    opsBox(box,ops,async sel=>{const r=await api('/api/ingest',{ops:sel,actor:ac,from:t},60000);box.textContent='';msg.textContent=r.message||'已保存';toast(r.message||'已保存');reload();});
+    opsBox(box,ops,async sel=>{const r=await api('/api/ingest',{ops:sel,actor:ac,from:t},60000);box.textContent='';msg.textContent=r.message||'已保存';toast(r.message||'已保存');reload();},elAlt(t,ac));
   }catch(e){msg.textContent=e.message;toast(e.message,true);}
   finally{b.disabled=false;}
 }
@@ -1294,7 +1320,7 @@ async function undoDelete(arr){   // 把刚删掉的原样导回去（编号、�
     if(/^导入 0 条/.test(r.message||''))toast('没能撤销：库里已有一模一样或很像的记忆');
     else{
       let note='';
-      if(semOn){try{await api('/api/reindex',{},70000);}catch(e){note='（语义索引没补上，到「设置 → 语义搜索」点「重建语义索引」）';}}   // 导回来的记忆没有向量，顺手补建
+      if(semOn){try{for(let i=0;i<5;i++){const j=await api('/api/reindex',{},70000);if(!j.left||!j.done)break;}}catch(e){note='（语义索引没补上，到「设置 → 语义搜索」点「重建语义索引」）';}}   // 导回来的记忆没有向量，顺手补建
       toast('已撤销删除，恢复 '+arr.length+' 条'+note,!!note);
     }
   }catch(e){toast('撤销失败：'+e.message,true);}
@@ -1544,7 +1570,7 @@ function askRestore(j,mode,when){
     }}
   ]).foot.firstChild.focus();
 }
-function go(t,pop){if(skipPop>0){afterPop.push(()=>go(t,pop));return;}if(tab==='mem')memScroll=scrollY;if(t==='tl'&&selMode){selMode=false;sel.clear();}if(!pop&&t!==tab){try{history.pushState({t},'');}catch(e){}}tab=t;render();scrollTo(0,t==='mem'?memScroll:0);if(t==='set'&&pendN)loadPend();if(t==='set'){loadTune();loadPmt();}}
+function go(t,pop){if(skipPop>0){afterPop.push(()=>go(t,pop));return;}if(tab==='mem')memScroll=scrollY;if(t==='tl'&&selMode){selMode=false;sel.clear();}if(!pop&&t!==tab){try{history.pushState({t},'');}catch(e){}}tab=t;render();scrollTo(0,t==='mem'?memScroll:0);if(t==='set'&&pendN)loadPend();if(t==='set'){loadTune();loadPmt();elLoad();}}
 function render(){
   ['mem','tl','find','set'].forEach(t=>{
     $('v-'+t).hidden=tab!==t;
@@ -1660,7 +1686,7 @@ function pmBuild(keepText){
   const c=pmCur();
   const lite=k.use===LITE;
   if(!keepText)pmFill(c?c.text:lite?k.alt:k.def,c?c.name:'');
-  $('pmdel').hidden=!c;$('pmtry').hidden=pmKind!=='ing';
+  $('pmdel').hidden=!c;$('pmtry').hidden=$('pmeval').hidden=pmKind!=='ing';
   $('pmsave').textContent=c?'保存并启用':'存成新的并启用';$('pmnew').hidden=!c;
   $('pmmsg').textContent=c?'正在用自定义的「'+c.name+'」。':lite?'正在用内置精简版。想改的话直接改上面的文字，起个名字，点保存（会另存成自定义的）。':'正在用内置完整版。想改的话直接改上面的文字，起个名字，点保存。';
 }
@@ -1705,7 +1731,7 @@ async function pmTry(){
   try{
     const j=await api('/api/ingest',{text:t,actor:ac,dry:true,psys},60000),ops=(j.ops||[]).filter(o=>o&&o.op);
     msg.textContent='草稿试提炼：'+(j.message||'完成')+(ops.length?'。结果显示在上面「提炼对话」下方，勾选保存的话是真的会入库。':'');$('ingmsg').textContent=msg.textContent;
-    if(ops.length)opsBox(box,ops,async sel=>{const r=await api('/api/ingest',{ops:sel,actor:ac,from:t},60000);box.textContent='';toast(r.message||'已保存');reload();});
+    if(ops.length)opsBox(box,ops,async sel=>{const r=await api('/api/ingest',{ops:sel,actor:ac,from:t},60000);box.textContent='';toast(r.message||'已保存');reload();},elAlt(t,ac));
     reveal($('ingmsg'));
   }catch(e){msg.textContent=e.message;toast(e.message,true);}
   finally{b.disabled=false;}
@@ -1715,32 +1741,36 @@ $('pmu').onchange=e=>{const v=e.target.value;e.target.value=pmK().use||'';pmGuar
 $('pmx').oninput=pmCount;
 $('pmsave').onclick=()=>pmSave(false);$('pmnew').onclick=()=>pmSave(true);$('pmdel').onclick=pmDel;
 $('pmdef').onclick=()=>{const k=pmK();if(!k)return;pmFill(k.def,$('pmn').value);toast('已载入完整版文字，还没保存');};
-$('pmtry').onclick=pmTry;
+$('pmtry').onclick=pmTry;$('pmeval').onclick=pmEval;
 /* v7.3：一键导出 / 导入全部自定义提示词（一个 JSON 文件；导入时同一项里名字相同的更新、不同名的新增，带 use 标记的顺便启用） */
 function pmExportText(){
   const sets=[];PM.kinds.forEach(k=>k.sets.forEach(x=>sets.push({k:k.k,kind:k.name,name:x.name,text:x.text,use:k.use===x.id})));
   return JSON.stringify({app:'xsj-prompts',v:1,exported:new Date().toISOString(),sets},null,1);
 }
-async function pmExport(){
-  if(!PM){await loadPmt(true);}
-  if(!PM||!PM.kinds.some(k=>k.sets.length)){toast('还没有自定义的提示词可导出',true);return;}
-  const name='prompts-'+dateOf(Date.now())+'.json',txt=pmExportText();
+async function shareJson(name,txt,title){   // 手机上走分享面板，不行就下载
   for(const type of ['application/json','text/plain']){
     try{
       const f=new File([txt],name,{type});
-      if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'提示词备份'});return;}
+      if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title});return;}
     }catch(e){if(e&&e.name==='AbortError')return;}
   }
   const url=URL.createObjectURL(new Blob([txt],{type:'application/json'})),a=h('a',{href:url,download:name});
   document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
   toast('如果没有弹出保存，请用「复制」',false);
 }
+async function copyText(txt,okmsg){
+  try{await navigator.clipboard.writeText(txt);toast(okmsg);}
+  catch(e){const p=$('paste');p.value=txt;p.focus();p.select();toast('请手动复制「备份」里文本框的内容',true);}
+}
+async function pmExport(){
+  if(!PM){await loadPmt(true);}
+  if(!PM||!PM.kinds.some(k=>k.sets.length)){toast('还没有自定义的提示词可导出',true);return;}
+  await shareJson('prompts-'+dateOf(Date.now())+'.json',pmExportText(),'提示词备份');
+}
 async function pmCopy(){
   if(!PM){await loadPmt(true);}
   if(!PM||!PM.kinds.some(k=>k.sets.length)){toast('还没有自定义的提示词可复制',true);return;}
-  const txt=pmExportText();
-  try{await navigator.clipboard.writeText(txt);toast('已复制全部自定义提示词');}
-  catch(e){const p=$('paste');p.value=txt;p.focus();p.select();toast('请手动复制「备份」里文本框的内容',true);}
+  await copyText(pmExportText(),'已复制全部自定义提示词');
 }
 async function pmImportText(t){
   let o;try{o=JSON.parse(t);}catch(e){toast('不是有效的 JSON 文件',true);return;}
@@ -1755,6 +1785,147 @@ async function pmImportText(t){
 }
 $('pmexp').onclick=pmExport;$('pmcpy').onclick=pmCopy;$('pmimp').onclick=()=>$('pmfile').click();
 $('pmfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let t;try{t=await f.text();}catch(err){toast('读取文件失败',true);return;}pmImportText(t);};
+
+
+/* ---------- v7.7：提炼评测集 ---------- */
+let EL=null,elAt=0,elBusy=false;   // EL＝/api/eval 返回的：cases、runs、cur（现在用的提示词 · 模型）、max
+const elOk=r=>!(r.m||r.f||r.t||r.s);
+const elSumTxt=s=>'漏记 '+s.m+' · 误记 '+s.f+' · 时间错 '+s.t+' · 说话人错 '+s.s+'（'+s.n+' 条标准答案，'+s.pass+' / '+s.cases+' 段全对）'+(s.x?'；另多出 '+s.x+' 条没标注的':'');
+const elDiff=(a,b)=>{const p=[['漏记','m'],['误记','f'],['时间错','t'],['说话人错','s']].filter(x=>a[x[1]]!==b[x[1]]).map(x=>x[0]+' '+b[x[1]]+'→'+a[x[1]]);return p.length?'。和上次相比：'+p.join('，'):'。和上次相比没有变化';};
+function elRender(){
+  const box=$('evout');box.textContent='';
+  if(!EL)return;
+  if(!elBusy)$('evmsg').textContent=EL.cases.length?'现在用：'+EL.cur+'。共 '+EL.cases.length+' 段用例（最多 '+EL.max.cases+' 段）。':'还没有用例。到上面「提炼对话」试提炼一段，勾选你认可的，点「存为评测用例」；或点「新增用例」手写。';
+  if(EL.bad)box.append(h('div',{class:'grp dupg'},
+    h('p',{class:'hint',style:'margin:0'},'另有 '+EL.bad+' 段存的用例读不出来（格式坏了），已原样保留没删，原文在 KV 的 evl 里。确定不要了可以清掉。'),
+    h('div',{class:'btns'},h('button',{class:'btn s',onclick:elBadClear},'清掉读不出来的 '+EL.bad+' 段'))));
+  const rs=EL.runs,last=rs[rs.length-1],prev=rs[rs.length-2];
+  if(last)box.append(h('div',{class:'grp dupg'},
+    h('p',{class:'hint',style:'margin:0'},'最近一次跑分：'+fmtTime(last.t)+' · '+last.label),
+    h('p',{class:'txt'},elSumTxt(last.sum)),
+    prev?h('p',{class:'hint',style:'margin:0'},'上一次（'+prev.label+'）：'+elSumTxt(prev.sum)+elDiff(last.sum,prev.sum)):null));
+  EL.cases.forEach(c=>{
+    const r=last&&last.res.find(x=>x.id===c.id);
+    box.append(h('div',{class:'grp dupg'},
+      h('p',{class:'txt',style:'margin:0'},(r?(elOk(r)?'✅ ':'❌ '):'· ')+c.name+(c.actor?' 〔'+c.actor+'〕':'')+' · '+c.expect.length+' 条该记'+(c.forbid.length?'、'+c.forbid.length+' 条不该记':'')),
+      r?r.d.map(d=>h('p',{class:'hint',style:'margin:2px 0'},d)):null,
+      h('div',{class:'btns'},h('button',{class:'btn s',onclick:()=>elEdit(c)},'编辑'))));
+  });
+}
+async function elLoad(force){
+  if(!configured())return;
+  if(!force&&EL&&Date.now()-elAt<15000)return;elAt=Date.now();
+  try{EL=await api('/api/eval',{});elRender();}
+  catch(e){elAt=0;$('evmsg').textContent=/not found|404/i.test(e.message)?'Worker 还是旧版本，先换成 v7.7 或更新的 Worker，这里才能用。':e.message;}
+}
+async function elRun(psys){
+  if(elBusy)return;
+  if(!EL||!EL.cases.length){toast('还没有用例，先存一段',true);return;}
+  elBusy=true;const bs=[$('evrun'),$('pmeval')];bs.forEach(b=>{b.disabled=true;});
+  const msg=$('evmsg'),cs=EL.cases,res=[];let label='';
+  try{
+    for(let i=0;i<cs.length;i++){
+      msg.textContent='跑分中 '+(i+1)+' / '+cs.length+'：'+cs[i].name+'…（每段最多约 25 秒，不会改动记忆库）';
+      try{const r=await api('/api/eval_run',{id:cs[i].id,psys:psys||undefined},60000);res.push(r);label=r.label;}
+      catch(e){throw new Error('第 '+(i+1)+' 段「'+cs[i].name+'」出错：'+e.message+'。这次不记录。');}
+    }
+    EL=await api('/api/eval_log',{label,res},30000);elAt=Date.now();
+  }catch(e){msg.textContent=e.message;toast(e.message,true);return;}
+  finally{elBusy=false;bs.forEach(b=>{b.disabled=false;});}
+  elRender();toast('跑分完成');reveal($('evmsg'));
+}
+function pmEval(){
+  const psys=$('pmx').value.trim();
+  if(!psys){toast('提示词不能为空',true);return;}
+  const gl=document.querySelector('[data-g=evl] .lg');if(gl.getAttribute('aria-expanded')!=='true')gl.click();
+  elRun(psys);
+}
+function elEdit(c,pre){
+  const src=c||pre||{},mx=EL.max;
+  const inp=ph=>h('input',{class:'field',type:'text',placeholder:ph,autocapitalize:'off',autocorrect:'off',spellcheck:'false'});
+  const nm=inp('给这段起个名字（可空，默认取对话开头）'),ac=inp('角色（可空）'),tx=h('textarea',{class:'field',rows:'7',maxlength:String(mx.text),placeholder:'粘贴一段对话（用户：…… 角色：……）',autocapitalize:'off',autocorrect:'off',spellcheck:'false'});
+  ac.setAttribute('list','sumdl');nm.maxLength=30;
+  nm.value=c?c.name:'';ac.value=src.actor||'';tx.value=src.text||'';
+  const exBox=h('div'),fbBox=h('div'),exs=[],fbs=[];
+  const add=(arr,box,it,full)=>{
+    const r={c:inp(full?'该记什么，比如：用户2026年10月28日15:30要去面试':'不该记什么，比如：用户喜欢喝咖啡'),kw:inp('关键词（可空；每个词都要出现，A/B 二选一；不写就按内容找（日期钟点和「用户」不算；配了向量会再按意思比一次））')};
+    r.c.value=it.c||'';r.kw.value=Array.isArray(it.kw)?it.kw.join(' '):it.kw||'';
+    const row=[r.c,r.kw];
+    if(full){
+      r.date=inp('日期 2026-10-28（空＝不查，写「无」＝必须没有）');r.time=inp('钟点 15:30（空＝不查，写「无」＝必须没有）');
+      r.subj=h('select',{class:'field','aria-label':'谁的事'},...[['','谁的事：不查'],['用户','用户的事'],['角色','角色的事'],['双方','双方的事']].map(o=>h('option',{value:o[0]},o[1])));
+      r.date.value=it.date||'';r.time.value=it.time||'';r.subj.value=it.subj||'';
+      row.push(r.date,r.time,r.subj);
+    }
+    const g=h('div',{class:'grp dupg'},row,h('button',{type:'button',class:'btn s danger',onclick:()=>{g.remove();arr.splice(arr.indexOf(r),1);}},'删掉这条'));
+    arr.push(r);box.append(g);
+  };
+  (src.expect||[]).forEach(it=>add(exs,exBox,it,true));(src.forbid||[]).forEach(it=>add(fbs,fbBox,it,false));
+  const collect=()=>({name:nm.value,actor:ac.value,text:tx.value,
+    expect:exs.map(r=>({c:r.c.value,kw:r.kw.value,date:r.date.value,time:r.time.value,subj:r.subj.value})),
+    forbid:fbs.map(r=>({c:r.c.value,kw:r.kw.value}))});
+  const base=JSON.stringify(collect()),dirty=()=>JSON.stringify(collect())!==base;
+  const body=h('div',null,
+    h('p',{class:'hint'},c?'「现在」按 '+fmtTime(c.now)+' 算（存这段时定下的，标准答案里的日期照它写）。':'「现在」会定在保存的这一刻，标准答案里的日期照它写（那天说「下周三」就写下周三的日期）。'),
+    nm,ac,tx,
+    h('p',{class:'lbl'},'该记的（模型应该提炼出来的）。这段本来什么都不该记就一条都别加，提炼出任何东西都算误记。'),exBox,
+    h('button',{type:'button',class:'btn s',onclick:()=>{if(exs.length>=mx.exp){toast('最多 '+mx.exp+' 条',true);return;}add(exs,exBox,{},true);}},'＋ 加一条该记的'),
+    h('p',{class:'lbl'},'不该记的（提炼出这样的就算误记）'),fbBox,
+    h('button',{type:'button',class:'btn s',onclick:()=>{if(fbs.length>=mx.forbid){toast('最多 '+mx.forbid+' 条',true);return;}add(fbs,fbBox,{},false);}},'＋ 加一条不该记的'));
+  dialog(c?'编辑用例':'新增用例',body,[
+    {label:'取消',fn:cl=>{if(dirty())askDiscard(cl);else cl();}},
+    {label:'保存',primary:true,fn:async cl=>{
+      try{const j=await api('/api/eval_save',{...collect(),id:c?c.id:undefined},30000);EL=j;elAt=Date.now();cl();elRender();toast(j.message);}
+      catch(e){toast(e.message,true);}
+    }},
+    ...(c?[{label:'删除这段',danger:true,fn:cl=>elDel(c,cl)}]:[])
+  ],dirty);
+}
+function elBadClear(){
+  dialog('清掉读不出来的用例？',h('p',{class:'txt'},'这 '+EL.bad+' 段会从评测集里彻底删掉，不能撤销。好的用例和跑分记录不受影响。'),[
+    {label:'取消',fn:cl=>cl()},
+    {label:'清掉',danger:true,fn:async cl=>{try{const j=await api('/api/eval_del',{bad:true});EL=j;elAt=Date.now();cl();elRender();toast(j.message);}catch(e){toast(e.message,true);}}}
+  ]).foot.firstChild.focus();
+}
+function elDel(c,closeEdit){
+  dialog('删除这段用例？',h('p',{class:'txt'},'「'+c.name+'」会被删掉，不能撤销。已记录的跑分结果不受影响。'),[
+    {label:'取消',fn:cl=>cl()},
+    {label:'删除',danger:true,fn:async cl=>{try{const j=await api('/api/eval_del',{id:c.id});EL=j;elAt=Date.now();cl();closeEdit();elRender();toast(j.message);}catch(e){toast(e.message,true);}}}
+  ]).foot.firstChild.focus();
+}
+const elDate=v=>{const m=/(\d{4})[-\/.年](\d{1,2})[-\/.月](\d{1,2})/.exec(String(v||''));return m?m[1]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[3]).slice(-2):'';};
+const elTime=v=>{const m=/(\d{1,2}):(\d{2})/.exec(String(v||''));return m?('0'+m[1]).slice(-2)+':'+m[2]:'';};
+function elFromOps(sel,rest,t,ac){   // 试提炼里勾选的＝标准答案，没勾的＝不该记的；打开编辑框让你核对后再存
+  if(!EL){toast('评测集还没载入（Worker 要 v7.7 或更新）',true);return;}
+  const isC=o=>/^(add|update)$/i.test(String(o.op||''))&&typeof o.content==='string';
+  elEdit(null,{text:t,actor:ac,
+    expect:sel.filter(isC).slice(0,EL.max.exp).map(o=>({c:o.content,kw:'',date:elDate(o.event_date),time:elTime(o.event_time)||elTime(o.event_date),subj:['用户','角色','双方'].includes(o.subject)?o.subject:''})),
+    forbid:rest.filter(isC).slice(0,EL.max.forbid).map(o=>({c:o.content,kw:''}))});
+}
+const elAlt=(t,ac)=>({label:'存为评测用例',fn:(sel,rest)=>elFromOps(sel,rest,t,ac)});
+const elExportText=()=>JSON.stringify({app:'xsj-eval',v:1,exported:new Date().toISOString(),cases:EL.cases.map(({id,...c})=>c)},null,1);
+async function elExport(){
+  if(!EL)await elLoad(true);
+  if(!EL||!EL.cases.length){toast('还没有用例可导出',true);return;}
+  await shareJson('eval-'+dateOf(Date.now())+'.json',elExportText(),'评测集备份');
+}
+async function elCopy(){
+  if(!EL)await elLoad(true);
+  if(!EL||!EL.cases.length){toast('还没有用例可复制',true);return;}
+  await copyText(elExportText(),'已复制全部用例');
+}
+async function elImportText(t){
+  let o;try{o=JSON.parse(t);}catch(e){toast('不是有效的 JSON 文件',true);return;}
+  const cases=Array.isArray(o)?o:o&&Array.isArray(o.cases)?o.cases:null;
+  if(!cases){toast('文件里没有找到用例',true);return;}
+  const b=$('evimp');b.disabled=true;
+  try{const j=await api('/api/eval_import',{cases});EL=j;elAt=Date.now();elRender();$('evmsg').textContent=j.message;toast(j.message);}
+  catch(e){toast(e.message,true);}
+  finally{b.disabled=false;}
+}
+$('evrun').onclick=()=>elRun();$('evadd').onclick=()=>{if(!EL){toast('评测集还没载入（Worker 要 v7.7 或更新）',true);return;}elEdit(null);};
+$('evexp').onclick=elExport;$('evcpy').onclick=elCopy;$('evimp').onclick=()=>$('evfile').click();
+$('evfile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let t;try{t=await f.text();}catch(err){toast('读取文件失败',true);return;}elImportText(t);};
 
 
 /* ---------- v4.0：搜索与回顾调节（直接在网页里改，存在 Worker 的 cfg.tune，优先于环境变量） ---------- */
@@ -1775,7 +1946,7 @@ const TUNE_UI=[
   {k:'SCHED',title:'结果末尾带近期日程',bool:true,desc:'过去 3 天到未来 14 天有日期的事。关掉可以省一点 token。'},
   {sec:'找相似 / 判重复',note:'「整理记忆」里找相似、保存时判重复用的。'},
   {k:'SEM_DUP',title:'「几乎同一件事」的及格线',scale:1,fmt:v=>v.toFixed(2),desc:'调低：更多条会被当成同一件事，误报也会多；调高：更严格。'},
-  {k:'DUP_SEM_MAX',title:'语义找相似最多比较',scale:1,fmt:v=>v+' 条',desc:'只比较最近这么多条。免费版 Worker 经常超时的话就调小。'}
+  {k:'DUP_SEM_MAX',title:'语义找相似最多比较',scale:1,fmt:v=>v+' 条',desc:'只比较最近这么多条（最多 700；向量维度高时还会更少，1024 维约 698）。免费版 Worker 经常超时的话就调小。'}
 ];
 const tuneRows={};let tuneAt=0,tuneBuilt=false,tuneRstT=0;
 function tuneSrc(r,v,u){
@@ -1861,6 +2032,18 @@ async function doFind(){
 async function connect(){
   const url=normUrl($('u').value),tok=$('k').value.trim(),msg=$('connmsg');
   if(!url||!tok){msg.textContent='地址和 Token 都要填。';return;}
+  const old=ls.get('url')||'';
+  if(Q.length&&old&&url!==old){   // 队列里没同步的修改会发到新地址的库里，先让人确认
+    dialog('换服务地址？',h('p',{class:'txt'},'还有 '+Q.length+' 条离线修改没同步，换成新地址后，这些修改会发到新地址的记忆库里。确定要换吗？（想先同步，取消后连上原来的地址等状态栏的「待同步」没了再换）'),[
+      {label:'取消',fn:c=>c()},
+      {label:'继续换',danger:true,fn:c=>{c();doConnect(url,tok);}}
+    ]).foot.firstChild.focus();
+    return;
+  }
+  return doConnect(url,tok);
+}
+async function doConnect(url,tok){
+  const msg=$('connmsg');
   const first=!ls.get('tok');cfg.url=url;cfg.tok=tok;$('u').value=url;
   $('conn').disabled=true;msg.textContent='连线中…';
   const ok=await refresh(false,true);
@@ -1910,7 +2093,8 @@ function wipe(){
   dialog('清除本机数据？',h('p',{class:'txt'},'会清掉这台设备上保存的地址、Token 和缓存。云端的记忆不受影响。'+((Q.length||FQ.length)?'\n\n⚠️ 还有 '+(Q.length+FQ.length)+' 条离线修改没同步成功，清除后这些修改会丢掉。':'')),[
     {label:'取消',fn:c=>c()},
     {label:'清除',danger:true,fn:c=>{
-      ['url','tok','cache','offq','offfail'].forEach(ls.del);
+      ['url','tok','cache','offq','offfail'].forEach(k=>ls.del(k));
+      ls.set=()=>true;   // 清完之后在途的同步 / 保存别再把缓存、队列写回本机
       c();location.reload();   // 直接重载，服务商 / 方案 / 提醒等表单和内存状态一次清干净
     }}
   ]).foot.firstChild.focus();
@@ -2013,7 +2197,7 @@ $('impfile').onchange=async e=>{
 $('impgo').onclick=()=>{const t=$('paste').value.trim();if(!t){toast('先粘贴 JSON',true);return;}importText(t);};
 $('wipe').onclick=wipe;$('reidx').onclick=reindex;$('dupgo').onclick=findDups;$('purge').onclick=purge;
 $('remsave').onclick=()=>saveRem();$('remtest').onclick=e=>remCall('/api/rem_test',e.currentTarget);$('remrun').onclick=e=>remCall('/api/rem_run',e.currentTarget);$('rembarkclr').onclick=()=>saveRem('bark');$('remtgclr').onclick=()=>saveRem('tg');
-$('pendgo').onclick=loadPend;$('chatview').onclick=chatView;$('chatclr').onclick=chatClear;$('consgo').onclick=consGo;$('redogo').onclick=()=>redoGo(true);$('maint').onclick=maintNow;['cfgrev','cfglow','cfgchat','cfgpurge','cfgcons','cfgcap','cfgevict','cfgrecall'].forEach(id=>{$(id).onchange=()=>saveCfg(id);});
+$('pendgo').onclick=loadPend;$('chatview').onclick=chatView;$('chatq').addEventListener('keydown',e=>{if(isEnter(e)){e.preventDefault();chatView();}});$('chatclr').onclick=chatClear;$('consgo').onclick=consGo;$('redogo').onclick=()=>redoGo(true);$('maint').onclick=maintNow;['cfgrev','cfglow','cfgchat','cfgfup','cfgpurge','cfgcons','cfgcap','cfguname','cfgevict','cfgrecall'].forEach(id=>{$(id).onchange=()=>saveCfg(id);});
 document.querySelectorAll('.keyeye').forEach(b=>b.onclick=()=>{ls.set('keyvis',ls.get('keyvis')==='1'?'0':'1');applyKeyVis();});applyKeyVis();
 ['llm','emb'].forEach(k=>{$(k+'-pre').onclick=()=>presSave(k);$(k+'-fetch').onclick=()=>provFetch(k);$(k+'-save').onclick=()=>provSave(k);$(k+'-reset').onclick=()=>provReset(k);$(k+'-pick').onchange=e=>{if(e.target.value)$(k+'-m').value=e.target.value;};});
 $('ingdry').onclick=ingDry;$('inglog').onclick=ingLog;$('sumload').onclick=sumLoad;$('sumgen').onclick=sumGen;$('sumsave').onclick=sumSave;
@@ -2029,7 +2213,7 @@ setTimeout(()=>checkUpdate(false,true),1500);
   tab=configured()?(TABS.includes(h0)?h0:'mem'):'set';
   try{history.replaceState({t:tab},'');}catch(e){}
   render();
-  if(tab==='set'&&configured()){loadTune();loadPmt();}
+  if(tab==='set'&&configured()){loadTune();loadPmt();elLoad();}
   refresh(false);
 })();
 window.addEventListener('online',()=>{if(configured())refresh(false,true);});   // v6.0：恢复联网就同步
