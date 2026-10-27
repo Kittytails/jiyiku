@@ -34,10 +34,10 @@ button,input,textarea,select{font:inherit;color:inherit;margin:0;-webkit-appeara
 #app>.title{position:sticky;top:0;z-index:10;height:var(--th)}
 .title h1,.title h2{margin:0;font-size:17px;line-height:1.2;flex:1;font-weight:700;letter-spacing:.5px}
 .title svg{flex:none}
-.tbtn{width:34px;height:34px;display:grid;place-items:center;background:var(--face);color:#000;font-weight:700;font-size:16px;padding:0;touch-action:manipulation}
+.tbtn{width:34px;height:34px;display:grid;place-items:center;background:var(--face);color:#000;font-weight:700;font-size:16px;padding:0}
 
 /* 按钮 */
-.btn{background:var(--face);color:#000;font-weight:700;font-size:15px;min-height:44px;padding:0 14px;touch-action:manipulation;cursor:pointer}
+.btn{background:var(--face);color:#000;font-weight:700;font-size:15px;min-height:44px;padding:0 14px;cursor:pointer}
 .btn:active{padding:2px 13px 0 15px}
 .btn.s{min-height:38px;padding:0 10px;font-size:14px}
 .btn.s:active{padding:2px 9px 0 11px}
@@ -55,7 +55,7 @@ button,input,textarea,select{font:inherit;color:inherit;margin:0;-webkit-appeara
 textarea.field{resize:none;display:block}
 .tags{display:flex;gap:6px;padding:0 8px 8px;overflow-x:auto;flex:none;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .tags::-webkit-scrollbar{display:none}
-.chip{background:var(--face);color:#000;font-size:14px;font-weight:700;min-height:36px;padding:0 12px;white-space:nowrap;flex:none;touch-action:manipulation}
+.chip{background:var(--face);color:#000;font-size:14px;font-weight:700;min-height:36px;padding:0 12px;white-space:nowrap;flex:none}
 .chip.sm{min-height:28px;padding:0 8px;font-size:13px;font-weight:400}
 
 /* 列表 */
@@ -69,7 +69,7 @@ textarea.field{resize:none;display:block}
 .empty b{display:block;font-size:17px;margin-bottom:4px}
 .empty p{margin:0 0 14px;color:var(--sub)}
 .more{padding:12px;text-align:center}
-.stat{position:sticky;bottom:var(--tbh);z-index:5;background:var(--face);margin:6px 8px 8px;font-size:13px;color:var(--sub)}
+.stat{background:var(--face);margin:6px 8px 8px;font-size:13px;color:var(--sub)}
 .stat.err{color:var(--bad)}
 
 /* 设置 / 试搜 */
@@ -91,7 +91,7 @@ textarea.field{resize:none;display:block}
 .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .out{background:#fff;margin:10px 0 0;padding:10px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;min-height:96px;line-height:1.6}
 .out.bad{color:var(--bad)}
-select.field{width:auto;padding-right:28px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 9px center}
+select.field{width:auto;max-width:100%;padding-right:28px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 9px center}
 
 .dup,.opl{align-items:flex-start;margin:8px 0 0}.dup .txt,.opl .txt{flex:1;min-width:0}.dupg{margin:10px 0 0;padding:8px 10px}.mem.old{opacity:.6}.warn{color:var(--bad)}
 
@@ -130,6 +130,11 @@ input[type=date].field::-webkit-date-and-time-value,input[type=time].field::-web
 .pill.imp{background:#fff3a8;color:#5a4500}.pill.low{background:#ececec;color:#666;font-weight:400}
 .pill.c1{background:#ffd9e8}.pill.c2{background:#cfe5ff}.pill.c3{background:#d3f2c4}.pill.c4{background:#e6d5ff}
 .pill.auto{background:#cdeeee}.pill.old{background:#d8d8d8;color:var(--bad)}.pill.exp{background:#ffe2b8}.pill.evt{background:#d6ecff}.pill.evt.soon{background:#ffd9a0;font-weight:700}.pill.evt.past{background:#e4e4e4;color:#666}.pill.act{background:#fff}
+.av{display:inline-block;flex:none;vertical-align:middle;overflow:hidden;border:1px solid;border-color:var(--lo) var(--hi) var(--hi) var(--lo);background:#c0c0c0;color:#fff;font-weight:700;text-align:center;font-style:normal}
+.av img{display:block;width:100%;height:100%;object-fit:cover}
+.pill.act .av{margin:0 3px 0 -3px;position:relative;top:-1px}
+.avrow{display:flex;align-items:center;gap:10px;margin:8px 0}.avrow .nm{flex:1;min-width:0;word-break:break-all;font-weight:700}
+.avrow .btn{flex:none}
 .acts .btn.s{min-height:34px;padding:0 9px;font-size:13px}
 .acts .btn.s:active{padding:2px 8px 0 10px}
 .acts .btn.danger{margin-left:auto}
@@ -156,7 +161,7 @@ button,label{-webkit-tap-highlight-color:transparent}
 
 /* 设置页：可折叠分组 */
 .grp>legend{padding:0}
-.lg{display:flex;align-items:center;gap:6px;min-height:32px;padding:2px 8px;background:var(--face);border:0;font-weight:700;font-size:15px;touch-action:manipulation;cursor:pointer}
+.lg{display:flex;align-items:center;gap:6px;min-height:32px;padding:2px 8px;background:var(--face);border:0;font-weight:700;font-size:15px;cursor:pointer}
 .lg::before{content:"▾";font-size:12px}
 .lg[aria-expanded=false]::before{content:"▸"}
 .grp.shut>.gb{display:none}
@@ -180,7 +185,6 @@ button,label{-webkit-tap-highlight-color:transparent}
 
 /* v3.3：多选 / 批量操作 */
 .dock{position:sticky;bottom:var(--tbh);z-index:5;background:var(--face)}
-.dock .stat{position:static;bottom:auto}
 .selbar{margin:6px 8px 0;padding:6px;border:2px groove #fff;display:flex;flex-direction:column;gap:6px}
 .selbar .r{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .selbar .n{font-weight:700;flex:1;min-width:0;font-size:14px}
@@ -203,7 +207,7 @@ button,label{-webkit-tap-highlight-color:transparent}
 .calw,.calg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
 .calw{padding:2px 0 4px;font-size:12px;font-weight:700;color:var(--sub);text-align:center}
 .calw .we{color:var(--bad)}
-.cd{min-width:0;min-height:46px;padding:3px 0 2px;background:var(--face);color:#000;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;line-height:1.2;touch-action:manipulation;border:2px solid;border-color:var(--hi) var(--dk) var(--dk) var(--hi);box-shadow:inset -1px -1px var(--lo),inset 1px 1px #dfdfdf}
+.cd{min-width:0;min-height:46px;padding:3px 0 2px;background:var(--face);color:#000;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;line-height:1.2;border:2px solid;border-color:var(--hi) var(--dk) var(--dk) var(--hi);box-shadow:inset -1px -1px var(--lo),inset 1px 1px #dfdfdf}
 .cd.pad{visibility:hidden}
 .cd .n{font-size:15px}
 .cd i{font-style:normal;font-size:11px;font-weight:700;min-width:18px;line-height:16px;margin-top:2px;padding:0 3px;background:var(--navy);color:#fff;text-align:center}
@@ -231,7 +235,7 @@ input[type=range].rng{-webkit-appearance:none;appearance:none;width:100%;height:
 mark{background:#ffe27a;color:#000;padding:0 1px}
 .sbox{position:relative;flex:1;min-width:0}
 .sbox .field{padding-right:40px}
-.sclr{position:absolute;right:3px;top:3px;width:38px;height:38px;border:0;background:transparent;color:var(--sub);font-weight:700;font-size:16px;padding:0;touch-action:manipulation;cursor:pointer}
+.sclr{position:absolute;right:3px;top:3px;width:38px;height:38px;border:0;background:transparent;color:var(--sub);font-weight:700;font-size:16px;padding:0;cursor:pointer}
 .sclr:active{color:#000}
 input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none;appearance:none;display:none}
 .qrow{display:flex;flex-wrap:wrap;gap:6px;margin:-2px 0 10px}
@@ -275,6 +279,8 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
         <input class="field" id="fq" type="search" placeholder="比如：我喜欢吃什么" enterkeyhint="search" autocapitalize="off" autocorrect="off" spellcheck="false">
         <label class="lbl" for="fa">角色（可空，模拟小手机注入的 _actor）</label>
         <input class="field" id="fa" type="text" list="sumdl" placeholder="留空＝不过滤" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <label class="lbl" for="fas">以哪位用户的身份看（模拟小手机带的用户；名字来自「角色名 / 用户名对照」和手填的用户名）</label>
+        <select class="field" id="fas"><option value="">自动（和小手机没带用户信息时一样）</option><option value="__raw">原样（不替换，看库里存的「用户」）</option></select>
         <label class="lbl" for="flim">最多返回</label>
         <select class="field" id="flim"><option value="3">3 条</option><option value="5" selected>5 条</option><option value="10">10 条</option></select>
         <label class="row" for="frw"><input type="checkbox" id="frw" checked>查询改写（需要语言模型，最多多等 4 秒）</label>
@@ -423,6 +429,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
         <label class="row" for="cfgevict"><input type="checkbox" id="cfgevict">满了自动清掉最没用的（先清已过期 / 已过时的，再清最久没用到的「小事」；置顶、普通、重要的不动）</label>
         <label class="row" for="cfgchat"><input type="checkbox" id="cfgchat">保存聊天原文（明文存在云端，只存不用，将来用来补记忆 / 核对来源；每个角色最多约 30 万字，满了删最旧的）</label>
         <label class="row" for="cfgfup"><input type="checkbox" id="cfgfup">事后追问：事件日期已过 1～3 天的事（不含「小事」，事后又聊过的不算），小手机搜记忆时顺带提示一句「可以问问结果」，让角色自己在聊天里自然问一句；每件事每个角色只问一次，试搜不算</label>
+        <label class="row" for="cfgunrep"><input type="checkbox" id="cfgunrep">给小手机的记忆里，把「用户」换成这位用户的名字（按每次请求带的 userId / 用户名现查，来自下面「角色名 / 用户名对照」或上面手填的名字；库里仍存「用户」，关掉即恢复）</label>
         <input class="field" id="chatq" aria-label="搜聊天原文" placeholder="搜聊天原文：关键词，空格隔开，都要出现；留空看最新的">
         <div class="btns"><button class="btn" id="chatview" type="button">看聊天原文</button><button class="btn danger" id="chatclr" type="button">清空聊天原文</button></div>
         <p class="hint" id="chatmsg"></p><div id="chatout"></div>
@@ -454,6 +461,17 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
           <button class="btn s danger" id="remtgclr" hidden>清除 Telegram</button>
         </div>
         <p class="hint">有钟点的事：在事件前「提前几分钟」到事件后 30 分钟内提醒一次；只有日期的事：当天到设定钟点提醒一次；同一件事不会重复提醒，改了日期 / 钟点算新的一次。过时、已过期的不提醒。<br>要自动跑，得在 Cloudflare Worker「设置 → 触发器 → Cron」再加一条 <b>*/5 * * * *</b>（每 5 分钟）；这条高频 Cron 只查提醒，不会触发整理。Key 只存在云端，页面不回显；Key 存在 KV 里是明文。免费版 Worker 记忆几百条以内没问题，上千条每 5 分钟读一次库可能超 CPU，可把 Cron 改稀一点。</p>
+      </div></fieldset>
+
+      <fieldset class="grp" data-g="avt">
+        <legend><button type="button" class="lg" aria-expanded="true">角色头像</button></legend><div class="gb">
+        <p class="hint" style="margin:0 0 8px">给每个角色挑一张头像，会显示在记忆卡片上；存在服务端，换设备也在。图片会自动裁成正方形、压成 128 像素的小图。没设头像的角色显示名字首字。</p>
+        <div id="avbox"></div>
+        <input type="file" id="avfile" accept="image/*" hidden>
+        <label class="lbl" for="avnew">添加还没有记忆的角色</label>
+        <input class="field" id="avnew" type="text" maxlength="30" placeholder="角色名" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <div class="btns"><button class="btn" id="avadd">选图并添加</button></div>
+        <p class="hint" id="avmsg">头像按角色名对应：改了角色名，要给新名字重新设一次。</p>
       </div></fieldset>
 
       <fieldset class="grp" data-g="sum">
@@ -527,10 +545,11 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 
 <script>
 'use strict';
-const APP_VERSION='v9.1';
+const APP_VERSION='v9.7';
 /* 禁止双击放大（iOS 对 touch-action 不总是认）：两次点击间隔太短时拦掉第二次的默认缩放；按钮 / 输入框不拦，免得吞掉连点；双指捏合缩放不受影响 */
 (function(){let lt=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<350&&e.touches.length===0&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label,summary,[role=button],[role=checkbox],.selmode')))e.preventDefault();lt=n;},{passive:false});})();
 let CAP=1500;const MAXLEN=2000,PAGE=80;
+const TMAX=253402300799999-8*36e5,tsOk=n=>n>=0&&n<=TMAX,tsFix=v=>{v=Number(v)||0;return tsOk(v)?v:0;};   // 时间戳超出北京时间 9999 年（或为负）时 toISOString 会抛错，一条脏数据就让整页渲染不出来：一律当 0
 const $=id=>document.getElementById(id);
 const ls={
   get(k){try{return localStorage.getItem('xsjmem.'+k);}catch(e){return null;}},
@@ -598,13 +617,13 @@ const saveQ=()=>{   // 本机存储满了：先丢掉大头的列表缓存再试
 };
 const isTmp=id=>String(id||'').startsWith('tmp-');   // 离线新增的记忆先用临时编号，同步后换成服务端的正式编号
 const splitTags=v=>(Array.isArray(v)?v:String(v==null?'':v).split(/[,，、]+/)).map(x=>String(x).trim()).filter(Boolean);
-const expTs=v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v||''))?Date.parse(v+'T23:59:59+08:00'):0;
+const expTs=v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v||''))?tsFix(Date.parse(v+'T23:59:59+08:00')):0;
 function patchItem(m,b){   // 把一次修改（字段名和接口一致）先套在本地那条记忆上
   if(b.content!==undefined)m.content=String(b.content).trim().slice(0,MAXLEN);
   if(b.tags!==undefined)m.tags=splitTags(b.tags).slice(0,10);
   if(b.pin!==undefined)m.pin=!!b.pin;
   if(b.actor!==undefined)m.actor=String(b.actor||'').trim();
-  if(b.importance!==undefined&&[0,1,2].includes(Number(b.importance)))m.imp=Number(b.importance);
+  if(b.importance!=null&&b.importance!==''&&[0,1,2].includes(Number(b.importance)))m.imp=Number(b.importance);
   if(b.category!==undefined)m.cat=String(b.category||'');
   if(b.stale!==undefined)m.stale=!!b.stale;
   if(b.expire!==undefined)m.exp=expTs(b.expire);
@@ -612,7 +631,7 @@ function patchItem(m,b){   // 把一次修改（字段名和接口一致）先�
   if(b.event_time!==undefined)m.evh=m.evt?String(b.event_time||''):'';
 }
 function patchBatch(m,p){
-  if(p.find)m.content=m.content.split(p.find).join(p.replace||'').slice(0,MAXLEN);
+  if(p.find){const c=m.content.split(p.find).join(p.replace||'').slice(0,MAXLEN);if(c.trim())m.content=c;}   // 替换后成了空的，服务端会拒绝整批，本地先别显示成空白记忆
   if(p.tags_add){const add=splitTags(p.tags_add);m.tags=[...new Set([...m.tags,...add])].slice(0,10);}
   if(p.tags_del){const del=splitTags(p.tags_del).map(x=>x.toLowerCase());m.tags=m.tags.filter(t=>!del.includes(t.toLowerCase()));}
   patchItem(m,{actor:p.actor,importance:p.importance,category:p.category,stale:p.stale,pin:p.pin});
@@ -740,14 +759,14 @@ const bjDay=off=>new Date(Date.now()+8*36e5+off*864e5).toISOString().slice(0,10)
 const dateOf=ts=>bj(ts).slice(0,10);
 const expLabel=ts=>bj(ts);   // 一律显示精确到秒的日期时间，按北京时间，和 Worker 一致（不随设备时区变）
 function normItem(m){
-  const upd=Number(m.upd)||Number(m.ts)||0;
-  return {id:String(m.id),content:String(m.content||''),tags:Array.isArray(m.tags)?m.tags.map(String):[],ts:Number(m.ts)||upd,upd,pin:!!m.pin,actor:String(m.actor||''),imp:m.imp!=null&&m.imp!==''&&[0,1,2].includes(Number(m.imp))?Number(m.imp):1,cat:String(m.cat||''),exp:Number(m.exp)||0,evt:/^\d{4}-\d{2}-\d{2}$/.test(m.evt||'')?m.evt:'',evh:/^\d{4}-\d{2}-\d{2}$/.test(m.evt||'')&&/^\d{2}:\d{2}(:\d{2})?$/.test(m.evh||'')?m.evh:'',stale:!!m.stale,src:m.src==='auto'?'auto':'',fr:String(m.fr||'').slice(0,300),sat:Number(m.sat)||0,hit:Math.max(0,Number(m.hit)||0),lh:Number(m.lh)||0};
+  const upd=tsFix(m.upd)||tsFix(m.ts);
+  return {id:String(m.id),content:String(m.content||''),tags:Array.isArray(m.tags)?m.tags.map(String):[],ts:tsFix(m.ts)||upd,upd,pin:!!m.pin,actor:String(m.actor||''),imp:m.imp!=null&&m.imp!==''&&[0,1,2].includes(Number(m.imp))?Number(m.imp):1,cat:String(m.cat||''),exp:tsFix(m.exp),evt:/^\d{4}-\d{2}-\d{2}$/.test(m.evt||'')?m.evt:'',evh:/^\d{4}-\d{2}-\d{2}$/.test(m.evt||'')&&/^\d{2}:\d{2}(:\d{2})?$/.test(m.evh||'')?m.evh:'',stale:!!m.stale,src:m.src==='auto'?'auto':'',fr:String(m.fr||'').slice(0,300),sat:tsFix(m.sat),hit:Math.max(0,Number(m.hit)||0),lh:tsFix(m.lh)};
 }
 const cacheSave=()=>{if(!ls.set('cache',JSON.stringify(items)))ls.del('cache');};   // 写不下就不留缓存，别留半截旧的
 const isOld=m=>m.stale||(m.exp>0&&m.exp<Date.now());
 const fmtTime=ts=>bj(ts);   // 精确到秒，北京时间
 const todayBJ=()=>bj(Date.now()).slice(0,10);
-const bj=ts=>{const x=new Date((Number(ts)||0)+8*36e5).toISOString();return x.slice(0,10)+' '+x.slice(11,19);};   // 北京时间，和 Worker 里搜索结果用的时间一致
+const bj=ts=>{const x=new Date(tsFix(ts)+8*36e5).toISOString();return x.slice(0,10)+' '+x.slice(11,19);};   // 北京时间，和 Worker 里搜索结果用的时间一致
 const isEnter=e=>e.key==='Enter'&&!e.isComposing&&e.keyCode!==229;   // 输入法选词时的回车不算
 const qTerms=()=>$('q').value.trim().toLowerCase().split(/\s+/).filter(Boolean);   // 空格隔开的多个词，要全部出现
 function hlNodes(text,ks){   // 把搜到的词标黄
@@ -785,7 +804,8 @@ async function syncOnce(manual){
   syncMsg='同步中…';syncErr=false;renderStat();
   try{
     await flushQueue();   // v6.0：离线时攒的修改先发出去
-    const j=await api('/api/list',{});
+    const [j,av]=await Promise.all([api('/api/list',{}),api('/api/avatars',{}).catch(()=>null)]);   // v9.7：头像拿不到（旧 Worker / 断网）不影响记忆同步
+    if(av&&av.items&&typeof av.items==='object'&&!Array.isArray(av.items)){avs=av.items;ls.set('avs',JSON.stringify(avs));}
     items=(j.items||[]).map(normItem);reapplyQueue();
     if(Number(j.cap)>0)CAP=Number(j.cap);const pv=j.prov||{};setSem(!!j.ai,j.src,pv.emb&&pv.emb.from);setLlm(!!j.llm,!!j.rw,pv.llm&&pv.llm.from);setProv(j.prov);setPres(j.pres);setRem(j.rem);setPend(j.pend);setCfg(j.cfg);
     loaded=true;lastSync=Date.now();cacheSave();fillActors();
@@ -877,11 +897,20 @@ function setCfg(c,force){
   if(!c)return;
   const sel=$('cfgpurge'),pv=String(c.purge||0);
   if(![...sel.options].some(o=>o.value===pv))sel.append(h('option',{value:pv},'放满 '+pv+' 天后清理'));
-  $('cfgrev').checked=!!c.review;$('cfgchat').checked=!!c.chatlog;$('cfgfup').checked=c.followup!==false;$('cfglow').checked=c.lowrev!==false;sel.value=pv;$('cfgcons').checked=!!c.cons;$('cfgevict').checked=!!c.evict;
+  $('cfgrev').checked=!!c.review;$('cfgchat').checked=!!c.chatlog;$('cfgfup').checked=c.followup!==false;$('cfgunrep').checked=c.unrep!==false;$('cfglow').checked=c.lowrev!==false;sel.value=pv;$('cfgcons').checked=!!c.cons;$('cfgevict').checked=!!c.evict;
   const rs=$('cfgrecall'),rv=String(c.recall==null?30:c.recall);if(![...rs.options].some(o=>o.value===rv))rs.append(h('option',{value:rv},rv+' 天没提起'));rs.value=rv;
   const cp=$('cfgcap');if(force||document.activeElement!==cp){cp.value=c.cap>0?c.cap:'';cp.placeholder=String(CAP);}
   const un=$('cfguname');if(force||document.activeElement!==un)un.value=c.uname||'';
-  setIdn(c,force);
+  setIdn(c,force);setFindUsers(c);
+}
+/* v9.2：试搜页「以哪位用户的身份」下拉：列出对照表里的用户名和手填的名字 */
+function setFindUsers(c){
+  const sel=$('fas');if(!sel)return;
+  const names=[...new Set([...Object.values((c.idn&&c.idn.u)||{}),c.uname||''].filter(Boolean))],cur=sel.value,sig=names.join('|');
+  if(sel.dataset.sig===sig)return;sel.dataset.sig=sig;
+  [...sel.querySelectorAll('option[data-n]')].forEach(o=>o.remove());
+  names.forEach(n=>sel.insertBefore(h('option',{value:n,'data-n':'1'},n),sel.options[1]));
+  sel.value=[...sel.options].some(o=>o.value===cur)?cur:'';
 }
 /* v9.1：角色名 / 用户名对照：小手机只传 userId / characterId 时，在这里给编号起名字 */
 let idnSig='';
@@ -931,7 +960,7 @@ async function remCall(path,btn){
   catch(e){toast(e.message,true);}
   finally{btn.disabled=false;}
 }
-const CFGKEY={cfgrev:'review',cfglow:'lowrev',cfgchat:'chatlog',cfgfup:'followup',cfgpurge:'purge',cfgcons:'cons',cfgcap:'cap',cfguname:'uname',cfgevict:'evict',cfgrecall:'recall'};
+const CFGKEY={cfgrev:'review',cfglow:'lowrev',cfgchat:'chatlog',cfgfup:'followup',cfgunrep:'unrep',cfgpurge:'purge',cfgcons:'cons',cfgcap:'cap',cfguname:'uname',cfgevict:'evict',cfgrecall:'recall'};
 async function saveCfg(id){
   // 只发被改的那一项：控件在首次同步回来前还是 HTML 默认值，全发会把别的设置写回默认
   const el=$(id),k=CFGKEY[id];if(!el||!k)return;
@@ -1110,9 +1139,9 @@ async function redoGo(first){
   finally{b.disabled=false;b.textContent='重新检查';}
 }
 async function loadPend(){
-  const box=$('pendbox'),msg=$('pendmsg');box.textContent='';msg.textContent='读取中…';
+  const box=$('pendbox'),msg=$('pendmsg');msg.textContent='读取中…';
   try{
-    const j=await api('/api/pending',{}),it=j.items||[];setPend(it.length);
+    const j=await api('/api/pending',{}),it=j.items||[];setPend(it.length);box.textContent='';   // 回包之后再清空再画：两次读取重叠时不会各画一遍
     msg.textContent=it.length?'共 '+it.length+' 批待确认（新的在上）。勾选要的再点「保存勾选的」，不要的点「丢弃」。':'没有待审的。'+(j.review?'':j.low?'（现在只有低把握的提炼会自动进来）':'（「先进待审」和「低把握自动进待审」现在都是关闭的）');
     const bats=[];let goAll=null;
     const pendCount=()=>{if(goAll)goAll.textContent='保存全部勾选的（'+bats.reduce((a,b)=>a+b.picks.filter(Boolean).length,0)+'）';};
@@ -1144,7 +1173,7 @@ async function loadPend(){
         h('button',{class:'btn danger',onclick:()=>dropAllPend(bats)},'丢弃全部')));
       pendCount();
     }
-  }catch(e){msg.textContent=e.message;}
+  }catch(e){box.textContent='';msg.textContent=e.message;}
 }
 function saveAllPend(bats){                        // 一次保存所有批里勾选的（按批依次保存，某一批失败不影响其他批）
   const todo=bats.filter(b=>b.picks.some(Boolean)),tot=todo.reduce((a,b)=>a+b.picks.filter(Boolean).length,0);
@@ -1181,13 +1210,13 @@ async function ingDry(){
   finally{b.disabled=false;}
 }
 async function chatView(){
-  const box=$('chatout'),msg=$('chatmsg');box.textContent='';msg.textContent='读取中…';
+  const box=$('chatout'),msg=$('chatmsg');msg.textContent='读取中…';
   try{
-    const j=await api('/api/chat',{q:$('chatq').value.trim(),limit:60}),st=j.stat||[],it=j.items||[];
+    const j=await api('/api/chat',{q:$('chatq').value.trim(),limit:60}),st=j.stat||[],it=j.items||[];box.textContent='';
     msg.textContent=(j.on?'':'（「保存聊天原文」现在是关闭的）')+(st.length?'已存：'+st.map(e=>(e.a||'共用')+' '+e.n+' 行 / '+Math.round(e.chars/1000)/10+' 万字').join('；')+'。':'还没有存聊天原文。')+(j.total>it.length?' 匹配 '+j.total+' 行，显示最新 '+it.length+' 行。':it.length?' 匹配 '+it.length+' 行。':'');
     it.forEach(x=>box.append(h('p',{class:'txt'},fmtTime(x.t)+(x.a?' 〔'+x.a+'〕':'')+' '+x.l)));
     reveal(msg);
-  }catch(e){msg.textContent=e.message;}
+  }catch(e){box.textContent='';msg.textContent=e.message;}
 }
 function chatClear(){
   dialog('清空聊天原文？',h('p',{class:'txt'},'所有角色存下来的聊天原文都会删掉，不能撤销。已提炼出的记忆不受影响。'),[
@@ -1227,7 +1256,61 @@ function ingTick(){
 function fillActors(){
   const dl=$('sumdl');
   dl.textContent='';[...new Set(items.map(m=>m.actor).filter(Boolean))].forEach(x=>dl.append(h('option',{value:x})));
+  renderAvs();
 }
+/* v9.7：角色头像 */
+let avs={};try{const o=JSON.parse(ls.get('avs')||'{}');if(o&&typeof o==='object'&&!Array.isArray(o))avs=o;}catch(e){}
+const avHue=n=>{let x=0;for(const c of n)x=(x*31+c.charCodeAt(0))%360;return x;};
+function avEl(name,sz){
+  const s=sz+'px',box=h('span',{class:'av',style:'width:'+s+';height:'+s+';line-height:'+(sz-2)+'px;font-size:'+Math.round(sz*0.5)+'px','aria-hidden':'true'});
+  if(own(avs,name)&&/^data:image\/(png|jpeg|webp);base64,/.test(String(avs[name])))box.append(h('img',{src:avs[name],alt:'',width:String(sz),height:String(sz)}));
+  else{box.style.background='hsl('+avHue(name)+',45%,55%)';box.textContent=[...name][0]||'?';}
+  return box;
+}
+function avCrop(file){
+  const url=URL.createObjectURL(file);
+  return new Promise((ok,no)=>{
+    const im=new Image();
+    im.onload=()=>{
+      try{
+        const S=128,c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d');
+        x.fillStyle='#fff';x.fillRect(0,0,S,S);
+        const w=im.naturalWidth||im.width,hh=im.naturalHeight||im.height,s=Math.min(w,hh);
+        if(!s)throw new Error('x');
+        x.drawImage(im,(w-s)/2,(hh-s)/2,s,s,0,0,S,S);
+        let q=0.85,d=c.toDataURL('image/jpeg',q);
+        while(d.length>45000&&q>0.35){q-=0.15;d=c.toDataURL('image/jpeg',q);}
+        ok(d);
+      }catch(e){no(new Error('这张图处理不了，换一张试试'));}
+    };
+    im.onerror=()=>no(new Error('这张图打不开，换一张试试'));
+    im.src=url;
+  }).finally(()=>URL.revokeObjectURL(url));
+}
+let avFor='';
+function avPick(name){avFor=name;const f=$('avfile');f.value='';f.click();}
+async function avSet(name,img){
+  const msg=$('avmsg');msg.textContent='保存中…';
+  try{
+    const r=await api('/api/avatar_set',{actor:name,img});
+    if(r&&r.items&&typeof r.items==='object'){avs=r.items;ls.set('avs',JSON.stringify(avs));}
+    msg.textContent=(r&&r.message)||'已保存';toast(msg.textContent);renderAvs();
+  }catch(e){msg.textContent=e.message;toast(e.message,true);}
+}
+function renderAvs(){
+  const box=$('avbox');if(!box)return;
+  const names=[...new Set([...items.map(m=>m.actor).filter(Boolean),...Object.keys(avs)])].sort((a,b)=>a.localeCompare(b,'zh'));
+  box.textContent='';
+  if(!names.length){box.append(h('p',{class:'hint'},'还没有角色。记忆里有了角色名会出现在这里，也可以在下面手动添加。'));return;}
+  names.forEach(n=>box.append(h('div',{class:'avrow'},avEl(n,48),h('span',{class:'nm'},n),
+    h('button',{class:'btn s',onclick:()=>avPick(n)},own(avs,n)?'换图':'设头像'),
+    own(avs,n)?h('button',{class:'btn s',onclick:()=>avSet(n,'')},'清除'):null)));
+}
+$('avfile').onchange=async e=>{
+  const f=e.target.files&&e.target.files[0],name=avFor;if(!f||!name)return;
+  try{await avSet(name,await avCrop(f));const nv=$('avnew');if(nv.value.trim().slice(0,30)===name)nv.value='';}catch(er){$('avmsg').textContent=er.message;toast(er.message,true);}
+};
+$('avadd').onclick=()=>{const n=$('avnew').value.trim().slice(0,30);if(!n){toast('先填角色名',true);$('avnew').focus();return;}avPick(n);};
 async function sumLoad(){
   const a=$('suma').value.trim(),msg=$('summsg');
   try{
@@ -1383,7 +1466,8 @@ function openEdit(m){
   ],dirty);
   setTimeout(()=>ta.focus(),60);
 }
-function undoOffline(arr,qe){   // v6.1：离线删除的撤销：队列里那条删除还没发出去，直接拿掉、本地恢复；已经发出去了就走正常的导回
+async function undoOffline(arr,qe){   // v6.1：离线删除的撤销：队列里那条删除还没发出去，直接拿掉、本地恢复；已经发出去了就走正常的导回
+  while(qe&&qe===sending)await new Promise(r=>setTimeout(r,200));   // 正在发送中：等它发完再判断（不然拿掉队列项也拦不住已发出的删除，本地恢复了服务端却已删）
   const i=qe?Q.indexOf(qe):-1;
   if(i<0){undoDelete(arr);return;}
   Q.splice(i,1);
@@ -1448,7 +1532,7 @@ function card(m){
       m.evt?pill('evt'+(evtDiff(m.evt)<0?' past':evtDiff(m.evt)<=3?' soon':''),'📅'+evtText(m.evt,m.evh)):null,
       m.stale?pill('old','已过时'):m.exp?(m.exp<Date.now()?pill('old','已过期'):pill('exp','⏳'+expLabel(m.exp)+' 到期')):null,
       m.hit>0?h('span',{class:'pill act',title:'被搜到用过 '+m.hit+' 次'},'🔁'+m.hit):null,
-      m.actor?pill('act','〔'+m.actor+'〕'):null,
+      m.actor?h('span',{class:'pill act'},avEl(m.actor,18),'〔'+m.actor+'〕'):null,
       srcBtn,
       m.tags.map(t=>h('button',{class:'chip sm',onclick:()=>{tagSel=t;shown=PAGE;if(tab==='mem')renderMem(true);else{memScroll=0;go('mem');}}},'#'+t))),
     srcBox,
@@ -1749,7 +1833,7 @@ const pmK=()=>PM&&PM.kinds.find(x=>x.k===pmKind);
 const LITE='builtin-lite';   // 内置精简版的编号（和 Worker 一致）
 const pmCur=()=>{const k=pmK();return k?k.sets.find(x=>x.id===k.use)||null:null;};   // 当前启用的自定义套；null＝默认
 function pmDirty(){return !!PM&&$('pmx').value!==pmBase;}
-function pmFill(text,name){$('pmx').value=text;pmBase=text;$('pmn').value=name||'';pmCount();}
+function pmFill(text,name){$('pmx').value=text;pmBase=$('pmx').value;$('pmn').value=name||'';pmCount();}
 function pmCount(){const v=$('pmx').value.length;$('pmcnt').textContent=v+' 字（上限 '+(PM?PM.max:20000)+'）'+(pmDirty()?'，有没保存的改动':'');}
 function pmBuild(keepText){
   const k=pmK();if(!k)return;
@@ -1823,7 +1907,7 @@ function pmExportText(){
   const sets=[];PM.kinds.forEach(k=>k.sets.forEach(x=>sets.push({k:k.k,kind:k.name,name:x.name,text:x.text,use:k.use===x.id})));
   return JSON.stringify({app:'xsj-prompts',v:1,exported:new Date().toISOString(),sets},null,1);
 }
-async function shareJson(name,txt,title){   // 手机上走分享面板，不行就下载
+async function shareJson(name,txt,title,hint){   // 手机上走分享面板，不行就下载
   for(const type of ['application/json','text/plain']){
     try{
       const f=new File([txt],name,{type});
@@ -1832,11 +1916,11 @@ async function shareJson(name,txt,title){   // 手机上走分享面板，不行
   }
   const url=URL.createObjectURL(new Blob([txt],{type:'application/json'})),a=h('a',{href:url,download:name});
   document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
-  toast('如果没有弹出保存，请用「复制」',false);
+  toast(hint||'如果没有弹出保存，请用「复制」',false);
 }
-async function copyText(txt,okmsg){
+async function copyText(txt,okmsg,failmsg){
   try{await navigator.clipboard.writeText(txt);toast(okmsg);}
-  catch(e){const p=$('paste');p.value=txt;p.focus();p.select();toast('请手动复制「备份」里文本框的内容',true);}
+  catch(e){const p=$('paste');p.value=txt;p.focus();p.select();toast(failmsg||'请手动复制「备份」里文本框的内容',true);}
 }
 async function pmExport(){
   if(!PM){await loadPmt(true);}
@@ -2024,7 +2108,7 @@ const TUNE_UI=[
   {k:'SEM_DUP',title:'「几乎同一件事」的及格线',scale:1,fmt:v=>v.toFixed(2),desc:'调低：更多条会被当成同一件事，误报也会多；调高：更严格。'},
   {k:'DUP_SEM_MAX',title:'语义找相似最多比较',scale:1,fmt:v=>v+' 条',desc:'只比较最近这么多条（最多 700；向量维度高时还会更少，1024 维约 698）。免费版 Worker 经常超时的话就调小。'}
 ];
-const tuneRows={};let tuneAt=0,tuneBuilt=false,tuneRstT=0;
+const tuneRows={};let tuneAt=0,tuneBuilt=false,tuneRstT=0,tuneLast=null;   // tuneLast＝上一次服务端给的值，保存失败时按它把控件还原
 function tuneSrc(r,v,u){
   const dv=u.bool?(v.def?'开':'关'):u.fmt(v.def);
   r.src.textContent='';
@@ -2033,7 +2117,7 @@ function tuneSrc(r,v,u){
   r.src.append(r.rst);
 }
 function applyTune(view){
-  const by={};view.forEach(v=>{by[v.k]=v;});
+  tuneLast=view;const by={};view.forEach(v=>{by[v.k]=v;});
   TUNE_UI.forEach(u=>{
     const r=tuneRows[u.k],v=by[u.k];if(!r||!v)return;
     if(u.bool){if(document.activeElement!==r.inp)r.inp.checked=!!v.eff;}
@@ -2051,7 +2135,11 @@ function tuneRecallNote(){
 }
 async function tuneSave(k,val){
   try{const j=await api('/api/tune',{set:{[k]:val}});applyTune(j.tune);toast('已保存');}
-  catch(e){toast(e.message,true);loadTune(true);}
+  catch(e){
+    toast(e.message,true);
+    const r=tuneRows[k];if(r&&r.inp===document.activeElement)r.inp.blur();   // 控件还拿着焦点时 applyTune 不会改它，先放开焦点
+    if(tuneLast)applyTune(tuneLast);loadTune(true);
+  }
 }
 function buildTune(view){
   if(tuneBuilt)return;tuneBuilt=true;
@@ -2093,12 +2181,13 @@ $('cfgrecall').addEventListener('change',tuneRecallNote);
 
 /* ---------- 试搜 ---------- */
 async function doFind(){
+  if($('fgo').disabled)return;   // 搜索进行中（回车也会走到这里）不重复发
   const q=$('fq').value.trim(),out=$('fout');
   out.classList.remove('bad');
   if(!q){out.textContent='先输入一句话。';return;}
   out.textContent='搜索中…';$('fgo').disabled=true;$('fq').blur();
   try{
-    const r=await mcpCall('memory_search',{query:q,limit:Number($('flim').value)||5,_actor:$('fa').value.trim(),rewrite:$('frw').checked,related:$('frel').checked,debug:true});
+    const r=await mcpCall('memory_search',{query:q,limit:Number($('flim').value)||5,_actor:$('fa').value.trim(),rewrite:$('frw').checked,related:$('frel').checked,debug:true,...($('fas').value==='__raw'?{_raw:true}:$('fas').value?{_as_user:$('fas').value}:{})});
     out.textContent=r.text||'（空）';out.classList.toggle('bad',r.isError);reveal(out);
   }catch(e){out.textContent=e.message;out.classList.add('bad');}
   finally{$('fgo').disabled=false;}
@@ -2136,25 +2225,14 @@ async function doConnect(url,tok){
   }
   else{msg.textContent=syncMsg.replace(/^同步失败：/,'连线失败：')+'（没有保存）';cfg.url=ls.get('url')||'';cfg.tok=ls.get('tok')||'';}
 }
-const exportText=()=>JSON.stringify({app:'xsj-memory',exported:new Date().toISOString(),items},null,2);
+const exportText=()=>JSON.stringify({app:'xsj-memory',exported:new Date().toISOString(),items:items.map(m=>isTmp(m.id)?(({id,...r})=>r)(m):m)},null,2);   // 离线新增还没同步的，临时编号不写进文件（导回去会变成永远改不动服务端的记忆）
 async function exportFile(){
   if(!items.length){toast('还没有记忆可导出',true);return;}
-  const name='memories-'+dateOf(Date.now())+'.json',txt=exportText();
-  for(const type of ['application/json','text/plain']){
-    try{
-      const f=new File([txt],name,{type});
-      if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'记忆库备份'});return;}
-    }catch(e){if(e&&e.name==='AbortError')return;}
-  }
-  const url=URL.createObjectURL(new Blob([txt],{type:'application/json'})),a=h('a',{href:url,download:name});
-  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
-  toast('如果没有弹出保存，请用「复制 JSON」',false);
+  await shareJson('memories-'+dateOf(Date.now())+'.json',exportText(),'记忆库备份','如果没有弹出保存，请用「复制 JSON」');
 }
 async function copyJson(){
   if(!items.length){toast('还没有记忆可复制',true);return;}
-  const txt=exportText();
-  try{await navigator.clipboard.writeText(txt);toast('已复制 '+items.length+' 条');}
-  catch(e){const p=$('paste');p.value=txt;p.focus();p.select();toast('请手动复制下方文本框里的内容',true);}
+  await copyText(exportText(),'已复制 '+items.length+' 条','请手动复制下方文本框里的内容');
 }
 async function importText(text){
   let d;
@@ -2169,7 +2247,7 @@ function wipe(){
   dialog('清除本机数据？',h('p',{class:'txt'},'会清掉这台设备上保存的地址、Token 和缓存。云端的记忆不受影响。'+((Q.length||FQ.length)?'\n\n⚠️ 还有 '+(Q.length+FQ.length)+' 条离线修改没同步成功，清除后这些修改会丢掉。':'')),[
     {label:'取消',fn:c=>c()},
     {label:'清除',danger:true,fn:c=>{
-      ['url','tok','cache','offq','offfail'].forEach(k=>ls.del(k));
+      ['url','tok','cache','offq','offfail','avs'].forEach(k=>ls.del(k));
       ls.set=()=>true;   // 清完之后在途的同步 / 保存别再把缓存、队列写回本机
       c();location.reload();   // 直接重载，服务商 / 方案 / 提醒等表单和内存状态一次清干净
     }}
@@ -2273,7 +2351,7 @@ $('impfile').onchange=async e=>{
 $('impgo').onclick=()=>{const t=$('paste').value.trim();if(!t){toast('先粘贴 JSON',true);return;}importText(t);};
 $('wipe').onclick=wipe;$('reidx').onclick=reindex;$('dupgo').onclick=findDups;$('purge').onclick=purge;
 $('remsave').onclick=()=>saveRem();$('remtest').onclick=e=>remCall('/api/rem_test',e.currentTarget);$('remrun').onclick=e=>remCall('/api/rem_run',e.currentTarget);$('rembarkclr').onclick=()=>saveRem('bark');$('remtgclr').onclick=()=>saveRem('tg');
-$('pendgo').onclick=loadPend;$('chatview').onclick=chatView;$('chatq').addEventListener('keydown',e=>{if(isEnter(e)){e.preventDefault();chatView();}});$('chatclr').onclick=chatClear;$('consgo').onclick=consGo;$('redogo').onclick=()=>redoGo(true);$('maint').onclick=maintNow;['cfgrev','cfglow','cfgchat','cfgfup','cfgpurge','cfgcons','cfgcap','cfguname','cfgevict','cfgrecall'].forEach(id=>{$(id).onchange=()=>saveCfg(id);});
+$('pendgo').onclick=loadPend;$('chatview').onclick=chatView;$('chatq').addEventListener('keydown',e=>{if(isEnter(e)){e.preventDefault();chatView();}});$('chatclr').onclick=chatClear;$('consgo').onclick=consGo;$('redogo').onclick=()=>redoGo(true);$('maint').onclick=maintNow;['cfgrev','cfglow','cfgchat','cfgfup','cfgunrep','cfgpurge','cfgcons','cfgcap','cfguname','cfgevict','cfgrecall'].forEach(id=>{$(id).onchange=()=>saveCfg(id);});
 document.querySelectorAll('.keyeye').forEach(b=>b.onclick=()=>{ls.set('keyvis',ls.get('keyvis')==='1'?'0':'1');applyKeyVis();});applyKeyVis();
 ['llm','emb'].forEach(k=>{$(k+'-pre').onclick=()=>presSave(k);$(k+'-fetch').onclick=()=>provFetch(k);$(k+'-test').onclick=()=>provTest(k);$(k+'-q').addEventListener('input',()=>provQ(k,false));$(k+'-q').addEventListener('keydown',e=>{if(isEnter(e)){e.preventDefault();provQ(k,true);}});$(k+'-save').onclick=()=>provSave(k);$(k+'-reset').onclick=()=>provReset(k);$(k+'-pick').onchange=e=>{if(e.target.value)$(k+'-m').value=e.target.value;};});
 $('idnsave').onclick=idnSave;$('ingdry').onclick=ingDry;$('inglog').onclick=()=>ingLog();$('inglive').onclick=()=>{ls.set('inglive',ingLive()?'0':'1');ingLiveBtn();if(ingLive())ingTick();else if(ingMode==='log'){ingSig='';ingLog();}};ingLiveBtn();$('sumload').onclick=sumLoad;$('sumgen').onclick=sumGen;$('sumsave').onclick=sumSave;
