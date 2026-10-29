@@ -30,7 +30,6 @@
 *{box-sizing:border-box;touch-action:manipulation}
 [hidden]{display:none!important}
 html{background:var(--bg)}
-html:has(#v-mem:not([hidden])){background:#fff}   /* v10.0.5：记忆页往下拉时露出的是最底层，原来是灰，改白 */
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"PingFang SC",sans-serif;font-size:15px;line-height:1.6;-webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased}
 button,input,textarea,select{font:inherit;color:inherit;margin:0;-webkit-appearance:none;appearance:none;border-radius:0}
@@ -48,6 +47,7 @@ mark{background:#e6e6e6;color:#111;border-radius:4px;padding:0 2px;font-weight:6
 /* 记忆页：搜索栏是吸顶的，顶部不再留灰色空条，避免与外层标题栏之间出现一道断层 */
 body:has(#v-mem:not([hidden])) #app{padding-top:env(safe-area-inset-top)}
 body:has(#v-find:not([hidden])) #app{padding-top:0}
+body:has(#v-mem:not([hidden]))::after{content:"";position:fixed;top:0;left:0;right:0;height:60vh;background:#fff;z-index:-1;pointer-events:none}   /* v10.0.6：记忆页下拉时，被拉开的空隙里露出白色而不是灰色 */
 body:has(#v-set:not([hidden])) #app{padding-top:calc(var(--tp) + 8px + 32px)}   /* v10.0.3：设置页内容整体下移 32px */
 body:has(#v-mem:not([hidden]))::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:rgba(255,255,255,.88);-webkit-backdrop-filter:saturate(1.8) blur(20px);backdrop-filter:saturate(1.8) blur(20px);z-index:10;pointer-events:none}   /* v10.0.4：状态栏色块，和吸顶栏同一种半透明白，上下无接缝 */
 .tt{flex:1;min-width:0}
@@ -1128,7 +1128,7 @@ section.grp[data-g=upd] .lg::before{background-image:url("data:image/svg+xml,%3C
 </div>
 <script>
 'use strict';
-const APP_VERSION='V10.0.5';
+const APP_VERSION='V10.0.6';
 /* 禁止双击放大（iOS 对 touch-action 不总是认）：两次点击间隔太短时拦掉第二次的默认缩放；按钮 / 输入框不拦，免得吞掉连点；双指捏合缩放不受影响 */
 (function(){let lt=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<350&&e.touches.length===0&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label,summary,[role=button],[role=checkbox],.selmode')))e.preventDefault();lt=n;},{passive:false});})();
 let CAP=1500;const MAXLEN=2000,PAGE=80;
