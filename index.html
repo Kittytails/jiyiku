@@ -24,7 +24,7 @@
   --line:#ececec;--fill:#f4f4f4;--fill2:#eaeaea;--bg:#f5f5f5;--card:#fff;
   --navy:#111;
   --tp:calc(max(calc(env(safe-area-inset-top) - 16px),calc(min(env(safe-area-inset-top),20px) + 6px)) + 4px);
-  --nbb:max(calc(env(safe-area-inset-bottom) - 16px),8px);   /* v10.0.1：底栏离屏幕底边的距离（原来是 12px+安全区，太靠上） */
+  --nbb:max(calc(env(safe-area-inset-bottom) - 3px),10px);   /* v10.0.1：底栏离屏幕底边的距离（原来是 12px+安全区，太靠上） */
   --tbh:calc(var(--nbb) + 82px);
 }
 *{box-sizing:border-box;touch-action:manipulation}
@@ -45,7 +45,10 @@ mark{background:#e6e6e6;color:#111;border-radius:4px;padding:0 2px;font-weight:6
 /* ---------- 页头 ---------- */
 #app{padding-top:calc(var(--tp) + 8px)}
 /* 记忆页：搜索栏是吸顶的，顶部不再留灰色空条，避免与外层标题栏之间出现一道断层 */
-body:has(#v-mem:not([hidden])) #app,body:has(#v-find:not([hidden])) #app{padding-top:0}   /* v10.0.1：安全区交给吸顶栏自己铺，状态栏那一块和栏同色 */
+body:has(#v-mem:not([hidden])) #app{padding-top:env(safe-area-inset-top)}
+body:has(#v-find:not([hidden])) #app{padding-top:0}
+body:has(#v-set:not([hidden])) #app{padding-top:calc(var(--tp) + 8px + 14px)}   /* v10.0.2：设置页内容整体下移 14px */
+body:has(#v-mem:not([hidden]))::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:#fff;z-index:10;pointer-events:none}   /* v10.0.1：只给状态栏那一块上白色，不动布局 */   /* v10.0.1：安全区交给吸顶栏自己铺，状态栏那一块和栏同色 */
 .tt{flex:1;min-width:0}
 .eye{margin:0 0 8px}
 .eye small{font-weight:600;font-size:10.5px;line-height:1;color:var(--mute)}
@@ -102,7 +105,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 
 /* ---------- 搜索条 / 筛选 ---------- */
 .bar{display:flex;gap:8px;align-items:center;padding:8px 16px 12px}
-#v-mem>.bar{position:sticky;top:0;z-index:9;flex-direction:column;align-items:stretch;gap:0;padding:calc(env(safe-area-inset-top) + 6px) 20px 14px;background:rgba(255,255,255,.88);-webkit-backdrop-filter:saturate(1.8) blur(20px);backdrop-filter:saturate(1.8) blur(20px);box-shadow:0 .5px 0 rgba(0,0,0,.08)}
+#v-mem>.bar{position:sticky;top:0;z-index:9;flex-direction:column;align-items:stretch;gap:0;padding:6px 20px 14px;background:rgba(255,255,255,.88);-webkit-backdrop-filter:saturate(1.8) blur(20px);backdrop-filter:saturate(1.8) blur(20px);box-shadow:0 .5px 0 rgba(0,0,0,.08)}
 #v-mem .hd .btn{min-height:44px}
 .hd{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:60px;padding:8px 20px 10px;background:#fff}
 .hdt{flex:1;min-width:0;margin:0;text-align:center;font-size:19px;line-height:1.2;font-weight:700;letter-spacing:.3px}
@@ -1122,7 +1125,7 @@ section.grp[data-g=upd] .lg::before{background-image:url("data:image/svg+xml,%3C
 </div>
 <script>
 'use strict';
-const APP_VERSION='V10.0.1';
+const APP_VERSION='V10.0.2';
 /* 禁止双击放大（iOS 对 touch-action 不总是认）：两次点击间隔太短时拦掉第二次的默认缩放；按钮 / 输入框不拦，免得吞掉连点；双指捏合缩放不受影响 */
 (function(){let lt=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<350&&e.touches.length===0&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label,summary,[role=button],[role=checkbox],.selmode')))e.preventDefault();lt=n;},{passive:false});})();
 let CAP=1500;const MAXLEN=2000,PAGE=80;
