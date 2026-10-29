@@ -777,6 +777,9 @@ section.grp[data-g=upd] .lg::before{background-image:url("data:image/svg+xml,%3C
 #v-set .btns .btn[aria-pressed=false]{color:#8a8a8f}
 #v-set .btns .btn[aria-pressed=true]{background:none;color:#111}
 #v-set .pre{margin:8px 0 0;padding:6px 0;border-radius:0;background:none}
+/* v10.0.8：使用中的方案——去掉黑色直角框，换成一块浅灰圆角底（两侧略外扩，文字位置不变），里面的按钮改白底 */
+#v-set .pre.on{margin:8px -14px 0;padding:12px 14px;border-radius:18px;background:rgba(118,118,128,.1);box-shadow:none}
+#v-set .pre.on .btn{background:#fff}
 /* 切换角色：头像上方的小弹窗，点空白处关闭，没有关闭按钮 */
 .rpop-scrim{position:fixed;top:0;right:0;bottom:0;left:0;z-index:40;background:transparent;-webkit-tap-highlight-color:transparent}
 .rpop{position:fixed;z-index:41;overflow-y:auto;overscroll-behavior:contain;padding:6px;background:#fff;border-radius:20px;box-shadow:0 12px 36px rgba(0,0,0,.16),0 0 0 1px rgba(0,0,0,.06);transform-origin:bottom left;animation:rpin .16s cubic-bezier(.2,.8,.2,1)}
@@ -1128,7 +1131,7 @@ section.grp[data-g=upd] .lg::before{background-image:url("data:image/svg+xml,%3C
 </div>
 <script>
 'use strict';
-const APP_VERSION='V10.0.7';
+const APP_VERSION='V10.0';
 /* 禁止双击放大（iOS 对 touch-action 不总是认）：两次点击间隔太短时拦掉第二次的默认缩放；按钮 / 输入框不拦，免得吞掉连点；双指捏合缩放不受影响 */
 (function(){let lt=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<350&&e.touches.length===0&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label,summary,[role=button],[role=checkbox],.selmode')))e.preventDefault();lt=n;},{passive:false});})();
 let CAP=1500;const MAXLEN=2000,PAGE=80;
