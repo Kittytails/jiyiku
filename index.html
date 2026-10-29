@@ -1042,6 +1042,12 @@ section.grp[data-g=upd] .lg::before{background-image:url("data:image/svg+xml,%3C
         <div class="btns"><button class="btn" id="redogo">开始检查</button></div>
         <p class="hint" id="redomsg"></p>
         <div id="redoout"></div>
+        <label class="lbl" style="margin-top:14px">用存下来的聊天原文补记忆（语言模型）</label>
+        <input class="field" id="fillac" type="text" list="sumdl" placeholder="角色（留空＝共用）" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <input class="field" id="fillfrom" type="date" aria-label="从哪天开始补，不填就接着上次">
+        <div class="btns"><button class="btn" id="fillgo" type="button">检查这一批</button><button class="btn" id="fillreset" type="button">从头开始</button></div>
+        <p class="hint" id="fillmsg"></p>
+        <div id="fillout"></div>
       </div></section></div>
 
       <div class="sgrp"><section class="grp" data-g="bak">
@@ -1086,7 +1092,7 @@ section.grp[data-g=upd] .lg::before{background-image:url("data:image/svg+xml,%3C
           <details class="abd"><summary>提炼评测集</summary><p>存几段真实对话，各配一份你认可的「该记什么」。改完提示词或换模型后点「跑分」，看漏记、误记、时间错、说话人错各多少，和上一次比。用例来源：上面「提炼对话」试提炼后，勾选你认可的、点「存为评测用例」（没勾的会预填成「不该记的」）；或点「新增用例」手写。跑分用的是和真实提炼同一套流程，但不看也不改记忆库。</p></details>
           <details class="abd"><summary>待审</summary><p>开了「先进待审」的自动提炼结果、定时整理的合并建议，会先停在这里，勾选确认后才入库。</p></details>
           <details class="abd"><summary>搜索与回顾调节</summary><p>以前要去 Cloudflare 改环境变量的参数，现在这里直接调。拖一下松手就保存，最多 30 秒内生效；这里调过的优先于环境变量，点「恢复默认」就改回去。</p><p>回顾会偶尔多带一条很久没提起的「重要」或「普通」记忆，也会偶尔随机翻一条小事。</p></details>
-          <details class="abd"><summary>自动整理</summary><p>几千条以上建议用付费版 Worker（免费版 CPU 不够，搜索可能超时）。库超过约 3MB 会自动分片存储，不用管。</p><p>清理只删「已过期 / 已标过时、并且放满上面天数」的，置顶的不动。定时合并要在 Worker「设置 → 触发器」里加一个 Cron（比如 0 20 * * 0＝每周日晚上）才会自己跑；不加的话，点「现在整理一次」手动跑。</p><p>低把握的自动进待审：偏好类、找不到原话、说话人对不上的；其余照常入库。上面「自动提炼先进待审」打开时，全部都进待审。</p><p>定时合并零碎小事：建议先进待审。</p><p>记忆条数上限：不能小于 100，留空＝用默认 1500 或环境变量。</p><p>用户的名字：小手机传来就自动记下；手填后小手机就顶不掉了，要换在这里改，清空＝恢复自动记；对话里这个名字开头的发言算「用户」说的。</p><p>满了自动清掉最没用的：先清已过期 / 已过时的，再清最久没用到的「小事」；置顶、普通、重要的不动。</p><p>保存聊天原文：明文存在云端，只存不用，将来用来补记忆 / 核对来源；每个角色最多约 30 万字，满了删最旧的。</p><p>事后追问：事件日期已过 1～3 天的事（不含「小事」，事后又聊过的不算），小手机搜记忆时顺带提示一句「可以问问结果」，让角色自己在聊天里自然问一句；每件事每个角色只问一次，试搜不算。</p><p>新提炼的记忆一律挂当前聊天的角色：跟哪个角色聊就挂哪个角色；挂了角色的记忆只有这个角色搜得到，别的角色看不到；关掉＝只有模型判断是角色自己的事才挂，用户自己的事共用。已有的记忆不会自动改，要改在记忆页多选后批量改「所属角色」。</p><p>给小手机的记忆里，把「用户」换成这位用户的名字：按每次请求带的 userId / 用户名现查，来自「头像与角色名」里的对照或手填的名字；库里仍存「用户」，关掉即恢复。</p><p>搜聊天原文：关键词用空格隔开，都要出现；留空看最新的。</p></details>
+          <details class="abd"><summary>自动整理</summary><p>几千条以上建议用付费版 Worker（免费版 CPU 不够，搜索可能超时）。库超过约 3MB 会自动分片存储，不用管。</p><p>清理只删「已过期 / 已标过时、并且放满上面天数」的，置顶的不动。定时合并要在 Worker「设置 → 触发器」里加一个 Cron（比如 0 20 * * 0＝每周日晚上）才会自己跑；不加的话，点「现在整理一次」手动跑。</p><p>低把握的自动进待审：偏好类、找不到原话、说话人对不上的；其余照常入库。上面「自动提炼先进待审」打开时，全部都进待审。</p><p>定时合并零碎小事：建议先进待审。</p><p>记忆条数上限：不能小于 100，留空＝用默认 1500 或环境变量。</p><p>用户的名字：小手机传来就自动记下；手填后小手机就顶不掉了，要换在这里改，清空＝恢复自动记；对话里这个名字开头的发言算「用户」说的。</p><p>满了自动清掉最没用的：先清已过期 / 已过时的，再清最久没用到的「小事」；置顶、普通、重要的不动。</p><p>保存聊天原文：明文存在云端，用来补记忆（设置 → 整理记忆 → 「用存下来的聊天原文补记忆」）和将来核对来源；每个角色最多约 30 万字，满了删最旧的。</p><p>补记忆：把这个角色存下来的聊天原文按存进来的时间切成一批一批（每批约 6000 字、相隔超过 6 小时分开），一批一批试提炼，勾选的才保存，没勾的就是不记；进度记在云端，下次接着补。日期框填了＝从那天起重新开始，不填＝接着上次，「从头开始」＝清掉进度。已经提炼过的对话再补一遍也没关系（会参考已有记忆，不重复记）。每批调用 1 次语言模型。</p><p>事后追问：事件日期已过 1～3 天的事（不含「小事」，事后又聊过的不算），小手机搜记忆时顺带提示一句「可以问问结果」，让角色自己在聊天里自然问一句；每件事每个角色只问一次，试搜不算。</p><p>新提炼的记忆一律挂当前聊天的角色：跟哪个角色聊就挂哪个角色；挂了角色的记忆只有这个角色搜得到，别的角色看不到；关掉＝只有模型判断是角色自己的事才挂，用户自己的事共用。已有的记忆不会自动改，要改在记忆页多选后批量改「所属角色」。</p><p>给小手机的记忆里，把「用户」换成这位用户的名字：按每次请求带的 userId / 用户名现查，来自「头像与角色名」里的对照或手填的名字；库里仍存「用户」，关掉即恢复。</p><p>搜聊天原文：关键词用空格隔开，都要出现；留空看最新的。</p></details>
           <details class="abd"><summary>事件提醒</summary><p>有钟点的事：在事件前「提前几分钟」到事件后 30 分钟内提醒一次；只有日期的事：当天到设定钟点提醒一次；同一件事不会重复提醒，改了日期 / 钟点算新的一次。过时、已过期的不提醒。<br>要自动跑，得在 Cloudflare Worker「设置 → 触发器 → Cron」再加一条 <b>*/5 * * * *</b>（每 5 分钟）；这条高频 Cron 只查提醒，不会触发整理。Key 只存在云端，页面不回显；Key 存在 KV 里是明文。免费版 Worker 记忆几百条以内没问题，上千条每 5 分钟读一次库可能超 CPU，可把 Cron 改稀一点。</p><p>Bark：填 Key 或完整地址；留空＝不改。</p><p>Telegram Bot Token：可选；留空＝不改。</p></details>
           <details class="abd"><summary>关系摘要</summary><p>摘要按【偏好】【事实】【近期的事】【和角色的关系】分段，会在每次搜索时自动带上。生成过一次之后，这个角色的记忆累计变动 10 条会自动重写；你手动改过的也会被覆盖，重要的内容请同时记成记忆。</p></details>
           <details class="abd"><summary>整理记忆</summary><p>把内容很像的记忆（关键词相近，或意思相近）并排列出来，你选保留哪条，其余的合并掉。事件日期不同的事（比如两次不同日子的出差）不会当成相似。「清理」会永久删除已过期和已标为过时的记忆。</p><p>同一主题的几条零碎记忆，合成一条更完整的；原来的标为过时（不删，可恢复）。先给你看建议，勾选后才保存。</p><p>旧记忆里漏了的事件日期 / 钟点、没设的有效期（比如当时随口说的临时活动），按新规则补上。每次看 30 条，先给你看建议，勾选后才保存；不改内容，也不动更新时间。原对话没存下来，所以「来源」补不了。</p></details>
@@ -1729,6 +1735,24 @@ async function redoGo(first){
     nextBtn(j.more);   // 不管有没有建议、保存没保存，还有下一批就一直显示
   }catch(e){msg.textContent=e.message;toast(e.message,true);}
   finally{b.disabled=false;b.textContent='重新检查';}
+}
+let fillDone=null,fillAc=null;   // v10.1：上一批处理完的进度，点「检查下一批」时带给服务器存下来
+async function fillGo(mode){   // 'first'＝不填日期就接着上次的进度、填了日期从那天起；'reset'＝从头；'next'＝接着上一批
+  const msg=$('fillmsg'),box=$('fillout'),b=$('fillgo'),rb=$('fillreset'),ac=$('fillac').value.trim(),req={actor:ac};
+  if(mode==='reset')req.reset=true;
+  else if(mode==='first'){const d=$('fillfrom').value;if(d){const t=new Date(d+'T00:00:00+08:00').getTime();if(!Number.isFinite(t)){toast('日期不对',true);return;}req.from=t;}}
+  else if(fillDone&&fillAc===ac)req.done=fillDone;
+  b.disabled=true;rb.disabled=true;msg.textContent='检查中…（最多约 30 秒，不会保存任何东西）';box.textContent='';
+  const nextBtn=more=>{if(more&&!box.querySelector('.fillnext'))box.append(h('div',{class:'btns fillnext'},h('button',{class:'btn',onclick:()=>fillGo('next')},'检查下一批')));};
+  try{
+    const j=await api('/api/chat_fill',req,70000),ops=(j.ops||[]).filter(o=>o&&o.op);
+    fillAc=ac;fillDone=j.done||null;
+    const rg=j.range?'聊天时间 '+fmtTime(j.range.from)+(j.range.to>j.range.from?' ～ '+fmtTime(j.range.to):'')+'（'+j.range.lines+' 行）：':'';
+    msg.textContent=rg+(j.message||'完成')+(j.left>0?'。还剩 '+j.left+' 行没检查（共 '+j.total+' 行）':'');reveal(msg);
+    if(ops.length)opsBox(box,ops,async sel=>{const x=await api('/api/ingest',{ops:sel,actor:ac,from:j.from||''},60000);box.textContent='';msg.textContent=x.message||'已保存';toast(x.message||'已保存');reload();nextBtn(j.left>0);});
+    nextBtn(j.left>0);   // 不管有没有建议、保存没保存，还有下一批就一直显示（不勾＝这批不记）
+  }catch(e){msg.textContent=e.message;toast(e.message,true);}
+  finally{b.disabled=false;rb.disabled=false;}
 }
 async function loadPend(){
   const box=$('pendbox'),msg=$('pendmsg');msg.textContent='读取中…';
@@ -3277,7 +3301,7 @@ $('impfile').onchange=async e=>{
 $('impgo').onclick=()=>{const t=$('paste').value.trim();if(!t){toast('先粘贴 JSON',true);return;}importText(t);};
 $('wipe').onclick=wipe;$('reidx').onclick=reindex;$('dupgo').onclick=findDups;$('purge').onclick=purge;
 $('remsave').onclick=()=>saveRem();$('remtest').onclick=e=>remCall('/api/rem_test',e.currentTarget);$('remrun').onclick=e=>remCall('/api/rem_run',e.currentTarget);$('rembarkclr').onclick=()=>saveRem('bark');$('remtgclr').onclick=()=>saveRem('tg');
-$('pendgo').onclick=loadPend;$('chatview').onclick=chatView;$('chatq').addEventListener('keydown',e=>{if(isEnter(e)){e.preventDefault();chatView();}});$('chatclr').onclick=chatClear;$('consgo').onclick=consGo;$('redogo').onclick=()=>redoGo(true);$('maint').onclick=maintNow;['cfgrev','cfglow','cfgchat','cfgfup','cfgunrep','cfgrolebind','cfgpurge','cfgcons','cfgcap','cfguname','cfgevict','cfgrecall'].forEach(id=>{$(id).onchange=()=>saveCfg(id);});
+$('pendgo').onclick=loadPend;$('chatview').onclick=chatView;$('chatq').addEventListener('keydown',e=>{if(isEnter(e)){e.preventDefault();chatView();}});$('chatclr').onclick=chatClear;$('consgo').onclick=consGo;$('redogo').onclick=()=>redoGo(true);$('fillgo').onclick=()=>fillGo('first');$('fillreset').onclick=()=>fillGo('reset');$('maint').onclick=maintNow;['cfgrev','cfglow','cfgchat','cfgfup','cfgunrep','cfgrolebind','cfgpurge','cfgcons','cfgcap','cfguname','cfgevict','cfgrecall'].forEach(id=>{$(id).onchange=()=>saveCfg(id);});
 document.querySelectorAll('.keyeye').forEach(b=>b.onclick=()=>{ls.set('keyvis',ls.get('keyvis')==='1'?'0':'1');applyKeyVis();});applyKeyVis();
 ['llm','emb'].forEach(k=>{$(k+'-pre').onclick=()=>presSave(k);$(k+'-fetch').onclick=()=>provFetch(k);$(k+'-test').onclick=()=>provTest(k);$(k+'-q').addEventListener('input',()=>provQ(k,false));$(k+'-q').addEventListener('keydown',e=>{if(isEnter(e)){e.preventDefault();provQ(k,true);}});$(k+'-save').onclick=()=>provSave(k);$(k+'-reset').onclick=()=>provReset(k);$(k+'-pick').onchange=e=>{if(e.target.value)$(k+'-m').value=e.target.value;};});
 $('idnsave').onclick=idnSave;$('ingdry').onclick=ingDry;$('inglog').onclick=()=>ingLog();$('inglive').onclick=()=>{ls.set('inglive',ingLive()?'0':'1');ingLiveBtn();if(ingLive())ingTick();else if(ingMode==='log'){ingSig='';ingLog();}};ingLiveBtn();$('sumload').onclick=sumLoad;$('sumgen').onclick=sumGen;$('sumsave').onclick=sumSave;
