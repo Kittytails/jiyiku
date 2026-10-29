@@ -30,6 +30,7 @@
 *{box-sizing:border-box;touch-action:manipulation}
 [hidden]{display:none!important}
 html{background:var(--bg)}
+html:has(#v-mem:not([hidden])){background:#fff}   /* v10.0.5：记忆页往下拉时露出的是最底层，原来是灰，改白 */
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"PingFang SC",sans-serif;font-size:15px;line-height:1.6;-webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased}
 button,input,textarea,select{font:inherit;color:inherit;margin:0;-webkit-appearance:none;appearance:none;border-radius:0}
@@ -48,7 +49,7 @@ mark{background:#e6e6e6;color:#111;border-radius:4px;padding:0 2px;font-weight:6
 body:has(#v-mem:not([hidden])) #app{padding-top:env(safe-area-inset-top)}
 body:has(#v-find:not([hidden])) #app{padding-top:0}
 body:has(#v-set:not([hidden])) #app{padding-top:calc(var(--tp) + 8px + 32px)}   /* v10.0.3：设置页内容整体下移 32px */
-body:has(#v-mem:not([hidden]))::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:#fff;z-index:10;pointer-events:none}   /* v10.0.1：只给状态栏那一块上白色，不动布局 */   /* v10.0.1：安全区交给吸顶栏自己铺，状态栏那一块和栏同色 */
+body:has(#v-mem:not([hidden]))::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:rgba(255,255,255,.88);-webkit-backdrop-filter:saturate(1.8) blur(20px);backdrop-filter:saturate(1.8) blur(20px);z-index:10;pointer-events:none}   /* v10.0.4：状态栏色块，和吸顶栏同一种半透明白，上下无接缝 */
 .tt{flex:1;min-width:0}
 .eye{margin:0 0 8px}
 .eye small{font-weight:600;font-size:10.5px;line-height:1;color:var(--mute)}
@@ -348,9 +349,11 @@ body.drw-open .sheetf{transform:none;visibility:visible;transition:transform .32
 .mo:active,.mo[aria-expanded=true]{background:#f1f1f1;color:#111}
 .mo[aria-expanded=true] .ai svg{transform:rotate(180deg)}
 .pmenu{position:fixed;top:0;left:0;z-index:12;display:flex;gap:2px;width:max-content;min-width:0;padding:4px;background:#fff;border-radius:16px;box-shadow:0 12px 36px rgba(0,0,0,.16),0 0 0 1px rgba(0,0,0,.06)}
-.pmenu.side{padding:3px;border-radius:22px}
-.pmenu.side .mi{flex-direction:row;gap:6px;min-width:0;min-height:38px;padding:0 16px 0 12px;border-radius:19px;font-size:14px}
-.pmenu.side .mi .ai svg{width:18px;height:18px}
+.pmenu.side{padding:0;gap:0;border-radius:999px;background:#111;box-shadow:0 6px 18px rgba(0,0,0,.2);transform-origin:right center;animation:sidepop .14s ease-out}
+.pmenu.side .mi{flex-direction:row;gap:5px;min-width:0;min-height:32px;padding:0 14px 0 11px;border-radius:999px;color:#fff;font-size:13px;font-weight:500;letter-spacing:.3px}
+.pmenu.side .mi:active{background:rgba(255,255,255,.16)}
+.pmenu.side .mi .ai svg{width:15px;height:15px;color:#fff}
+@keyframes sidepop{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:none}}
 .mi{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;flex:none;width:auto;min-width:58px;min-height:56px;padding:6px 8px;white-space:nowrap;border-radius:12px;color:#222;font-size:12.5px;font-weight:500;text-align:center}
 .mi:active{background:var(--fill)}
 .mi .ai svg{width:21px;height:21px;color:#444}
@@ -1125,7 +1128,7 @@ section.grp[data-g=upd] .lg::before{background-image:url("data:image/svg+xml,%3C
 </div>
 <script>
 'use strict';
-const APP_VERSION='V10.0.3';
+const APP_VERSION='V10.0.5';
 /* 禁止双击放大（iOS 对 touch-action 不总是认）：两次点击间隔太短时拦掉第二次的默认缩放；按钮 / 输入框不拦，免得吞掉连点；双指捏合缩放不受影响 */
 (function(){let lt=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<350&&e.touches.length===0&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label,summary,[role=button],[role=checkbox],.selmode')))e.preventDefault();lt=n;},{passive:false});})();
 let CAP=1500;const MAXLEN=2000,PAGE=80;
@@ -2244,13 +2247,13 @@ const IC={eye:'<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5
 const ico=k=>{const s=h('span',{class:'ai','aria-hidden':'true'});s.innerHTML='<svg viewBox="0 0 24 24">'+IC[k]+'</svg>';return s;};
 function closeMenus(except){document.querySelectorAll('.pmenu:not([hidden])').forEach(m=>{if(m===except)return;m.hidden=true;const b=m.parentNode.querySelector('.mo');if(b)b.setAttribute('aria-expanded','false');});}
 document.addEventListener('click',e=>{if(!e.target.closest('.pw'))closeMenus();});
-function placeMenu(menu,mb){
+function placeMenu(menu,mb){   // 菜单用 fixed 定位：优先在按钮下面，放不下就翻到上面，并避开底部悬浮导航栏
   if(menu.classList.contains('side')){   // v10.0.1：记忆卡片的菜单贴在箭头图标左边、和图标同一行
     const r=mb.getBoundingClientRect(),mh=menu.offsetHeight,mw=menu.offsetWidth;
     menu.style.top=Math.max(8,r.top+(r.height-mh)/2)+'px';
     menu.style.left=Math.max(8,r.left-mw-6)+'px';
     return;
-  }   // 菜单用 fixed 定位：优先在按钮下面，放不下就翻到上面，并避开底部悬浮导航栏
+  }
   const r=mb.getBoundingClientRect(),mh=menu.offsetHeight,mw=menu.offsetWidth,vh=window.innerHeight,vw=window.innerWidth;
   const nd=document.querySelector('.navdock'),ndr=nd?nd.getBoundingClientRect():null;
   const bottom=Math.min(vh-8,ndr&&ndr.height?ndr.top-8:vh-8),topLim=8;
