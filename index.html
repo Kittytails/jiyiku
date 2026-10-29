@@ -24,7 +24,8 @@
   --line:#ececec;--fill:#f4f4f4;--fill2:#eaeaea;--bg:#f5f5f5;--card:#fff;
   --navy:#111;
   --tp:calc(max(calc(env(safe-area-inset-top) - 16px),calc(min(env(safe-area-inset-top),20px) + 6px)) + 4px);
-  --tbh:calc(94px + env(safe-area-inset-bottom));
+  --nbb:max(calc(env(safe-area-inset-bottom) - 16px),8px);   /* v10.0.1：底栏离屏幕底边的距离（原来是 12px+安全区，太靠上） */
+  --tbh:calc(var(--nbb) + 82px);
 }
 *{box-sizing:border-box;touch-action:manipulation}
 [hidden]{display:none!important}
@@ -44,7 +45,7 @@ mark{background:#e6e6e6;color:#111;border-radius:4px;padding:0 2px;font-weight:6
 /* ---------- 页头 ---------- */
 #app{padding-top:calc(var(--tp) + 8px)}
 /* 记忆页：搜索栏是吸顶的，顶部不再留灰色空条，避免与外层标题栏之间出现一道断层 */
-body:has(#v-mem:not([hidden])) #app{padding-top:env(safe-area-inset-top)}
+body:has(#v-mem:not([hidden])) #app,body:has(#v-find:not([hidden])) #app{padding-top:0}   /* v10.0.1：安全区交给吸顶栏自己铺，状态栏那一块和栏同色 */
 .tt{flex:1;min-width:0}
 .eye{margin:0 0 8px}
 .eye small{font-weight:600;font-size:10.5px;line-height:1;color:var(--mute)}
@@ -101,7 +102,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 
 /* ---------- 搜索条 / 筛选 ---------- */
 .bar{display:flex;gap:8px;align-items:center;padding:8px 16px 12px}
-#v-mem>.bar{position:sticky;top:0;z-index:9;flex-direction:column;align-items:stretch;gap:0;padding:6px 20px 14px;background:rgba(255,255,255,.88);-webkit-backdrop-filter:saturate(1.8) blur(20px);backdrop-filter:saturate(1.8) blur(20px);box-shadow:0 .5px 0 rgba(0,0,0,.08)}
+#v-mem>.bar{position:sticky;top:0;z-index:9;flex-direction:column;align-items:stretch;gap:0;padding:calc(env(safe-area-inset-top) + 6px) 20px 14px;background:rgba(255,255,255,.88);-webkit-backdrop-filter:saturate(1.8) blur(20px);backdrop-filter:saturate(1.8) blur(20px);box-shadow:0 .5px 0 rgba(0,0,0,.08)}
 #v-mem .hd .btn{min-height:44px}
 .hd{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:60px;padding:8px 20px 10px;background:#fff}
 .hdt{flex:1;min-width:0;margin:0;text-align:center;font-size:19px;line-height:1.2;font-weight:700;letter-spacing:.3px}
@@ -344,6 +345,9 @@ body.drw-open .sheetf{transform:none;visibility:visible;transition:transform .32
 .mo:active,.mo[aria-expanded=true]{background:#f1f1f1;color:#111}
 .mo[aria-expanded=true] .ai svg{transform:rotate(180deg)}
 .pmenu{position:fixed;top:0;left:0;z-index:12;display:flex;gap:2px;width:max-content;min-width:0;padding:4px;background:#fff;border-radius:16px;box-shadow:0 12px 36px rgba(0,0,0,.16),0 0 0 1px rgba(0,0,0,.06)}
+.pmenu.side{padding:3px;border-radius:22px}
+.pmenu.side .mi{flex-direction:row;gap:6px;min-width:0;min-height:38px;padding:0 16px 0 12px;border-radius:19px;font-size:14px}
+.pmenu.side .mi .ai svg{width:18px;height:18px}
 .mi{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;flex:none;width:auto;min-width:58px;min-height:56px;padding:6px 8px;white-space:nowrap;border-radius:12px;color:#222;font-size:12.5px;font-weight:500;text-align:center}
 .mi:active{background:var(--fill)}
 .mi .ai svg{width:21px;height:21px;color:#444}
@@ -411,7 +415,7 @@ body.drw-open .sheetf{transform:none;visibility:visible;transition:transform .32
 .sa.pri:active{background:#3a3a3a}
 .sa.pri:disabled{opacity:.32}
 body.selmode .navdock{display:none}
-body.selmode .dock{bottom:calc(12px + env(safe-area-inset-bottom))}
+body.selmode .dock{bottom:var(--nbb)}
 .stat{display:flex;flex-direction:column;align-items:center;gap:8px;margin:0 16px 8px}
 .stat:empty{display:none}
 /* ---------- 提示条 / 轻提示 / 更新条 / 匹配条：黑白灰，同一套样式 ---------- */
@@ -447,10 +451,10 @@ body.selmode .dock{bottom:calc(12px + env(safe-area-inset-bottom))}
 .nmore[aria-expanded=true] svg{transform:rotate(180deg)}
 
 /* ---------- 悬浮底栏：磨砂药丸，图标在上、文字在下，当前页灰底 ---------- */
-.navdock{position:fixed;left:16px;right:16px;bottom:calc(12px + env(safe-area-inset-bottom));max-width:500px;margin:0 auto;z-index:10;display:flex;align-items:center;gap:15px;pointer-events:none}
+.navdock{position:fixed;left:16px;right:16px;bottom:var(--nbb);max-width:500px;margin:0 auto;z-index:10;display:flex;align-items:center;gap:15px;pointer-events:none}
 .navdock>*{pointer-events:auto}
 /* 底栏后面的渐变羽化：内容滑到下面时柔和淡出，不再硬切 */
-.navdock::before{content:"";position:absolute;z-index:-1;left:50%;width:100vw;transform:translateX(-50%);bottom:calc(-12px - env(safe-area-inset-bottom));height:calc(92px + env(safe-area-inset-bottom));pointer-events:none;
+.navdock::before{content:"";position:absolute;z-index:-1;left:50%;width:100vw;transform:translateX(-50%);bottom:calc(0px - var(--nbb));height:calc(var(--nbb) + 80px);pointer-events:none;
   background:linear-gradient(to top,rgba(245,245,245,.9) 0,rgba(245,245,245,.75) 25%,rgba(245,245,245,.45) 50%,rgba(245,245,245,.16) 75%,rgba(245,245,245,0) 100%)}
 .avbtn{flex:none;position:relative;width:60px;height:60px;padding:0;border-radius:50%;overflow:hidden;background:#fff;box-shadow:0 10px 32px rgba(0,0,0,.14),0 0 0 3px rgba(255,255,255,.9),0 0 0 4px rgba(0,0,0,.06)}
 .avbtn:active{transform:scale(.96)}
@@ -649,7 +653,7 @@ input[type=range].rng{-webkit-appearance:none;appearance:none;width:100%;height:
 }
 
 /* ---------- 搜索页 ---------- */
-.fdtop{padding:10px 20px 18px;background:#fff;box-shadow:0 .5px 0 rgba(0,0,0,.08)}
+.fdtop{padding:calc(env(safe-area-inset-top) + 10px) 20px 18px;background:#fff;box-shadow:0 .5px 0 rgba(0,0,0,.08)}
 .sbox:has(#fq:not(:placeholder-shown)) .sph{justify-content:flex-start;padding-left:16px}
 .sbox:has(#fq:not(:placeholder-shown)) .sph span{display:none}
 .fgo{display:none;position:absolute;right:8px;top:50%;width:28px;height:28px;margin-top:-14px;padding:0;border-radius:50%;background:#111;place-items:center}
@@ -1118,7 +1122,7 @@ section.grp[data-g=upd] .lg::before{background-image:url("data:image/svg+xml,%3C
 </div>
 <script>
 'use strict';
-const APP_VERSION='V10.0';
+const APP_VERSION='V10.0.1';
 /* 禁止双击放大（iOS 对 touch-action 不总是认）：两次点击间隔太短时拦掉第二次的默认缩放；按钮 / 输入框不拦，免得吞掉连点；双指捏合缩放不受影响 */
 (function(){let lt=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<350&&e.touches.length===0&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label,summary,[role=button],[role=checkbox],.selmode')))e.preventDefault();lt=n;},{passive:false});})();
 let CAP=1500;const MAXLEN=2000,PAGE=80;
@@ -2237,7 +2241,13 @@ const IC={eye:'<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5
 const ico=k=>{const s=h('span',{class:'ai','aria-hidden':'true'});s.innerHTML='<svg viewBox="0 0 24 24">'+IC[k]+'</svg>';return s;};
 function closeMenus(except){document.querySelectorAll('.pmenu:not([hidden])').forEach(m=>{if(m===except)return;m.hidden=true;const b=m.parentNode.querySelector('.mo');if(b)b.setAttribute('aria-expanded','false');});}
 document.addEventListener('click',e=>{if(!e.target.closest('.pw'))closeMenus();});
-function placeMenu(menu,mb){   // 菜单用 fixed 定位：优先在按钮下面，放不下就翻到上面，并避开底部悬浮导航栏
+function placeMenu(menu,mb){
+  if(menu.classList.contains('side')){   // v10.0.1：记忆卡片的菜单贴在箭头图标左边、和图标同一行
+    const r=mb.getBoundingClientRect(),mh=menu.offsetHeight,mw=menu.offsetWidth;
+    menu.style.top=Math.max(8,r.top+(r.height-mh)/2)+'px';
+    menu.style.left=Math.max(8,r.left-mw-6)+'px';
+    return;
+  }   // 菜单用 fixed 定位：优先在按钮下面，放不下就翻到上面，并避开底部悬浮导航栏
   const r=mb.getBoundingClientRect(),mh=menu.offsetHeight,mw=menu.offsetWidth,vh=window.innerHeight,vw=window.innerWidth;
   const nd=document.querySelector('.navdock'),ndr=nd?nd.getBoundingClientRect():null;
   const bottom=Math.min(vh-8,ndr&&ndr.height?ndr.top-8:vh-8),topLim=8;
@@ -2262,7 +2272,7 @@ function card(m){
   const sm=selMode,on=sm&&sel.has(m.id);
   const srcLines=m.fr?dispU(m.fr).split('\n').map(s=>s.trim()).filter(Boolean).map(s=>{const k=/^【([^】]{1,30})】\s*([\s\S]*)$/.exec(s);return k?h('div',{class:'sl'},h('b',{class:'sn'},k[1]),k[2]):h('div',{class:'sl'},s);}):[];
   const srcBox=m.fr?h('div',{class:'srcbox',hidden:!srcOpen.has(m.id)},h('div',{class:'sh'},(m.fr.startsWith('合并自')?'来源':'来源对话')+' · '+(m.src==='auto'?'自动提炼':'手动记录')),srcLines):null;
-  const menu=h('div',{class:'pmenu',hidden:true}),mb=h('button',{type:'button',class:'mo','aria-label':'更多操作','aria-expanded':'false','aria-haspopup':'true',onclick:()=>toggleMenu(menu,mb)},ico('chev'));
+  const menu=h('div',{class:'pmenu side',hidden:true}),mb=h('button',{type:'button',class:'mo','aria-label':'更多操作','aria-expanded':'false','aria-haspopup':'true',onclick:()=>toggleMenu(menu,mb)},ico('chev'));
   const mi=(k,label,fn)=>h('button',{type:'button',class:'mi',onclick:()=>{menu.hidden=true;mb.setAttribute('aria-expanded','false');fn();}},ico(k),h('span',null,label));
   menu.append(mi('del','删除',()=>askDelete(m)));
   const ds=bj(m.upd),who=m.actor||'共用';
